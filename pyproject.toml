@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maccarone"
+readme = "README.md"
+description = "Mix natural language into your Python code"
+requires-python = ">=3.10"
+dependencies = [
+    "openai",
+    "pytest",
+    "pytest-asyncio",
+]
+dynamic = ["version"]
+
+[project.urls]
+"Homepage" = "https://github.com/bsilverthorn/maccarone"
+"Repository" = "https://github.com/bsilverthorn/maccarone"
+
+[project.optional-dependencies]
+dev = [
+    "ipython",
+    "pip-tools",
+]
+
+[project.scripts]
+
+[tool.setuptools_scm]
