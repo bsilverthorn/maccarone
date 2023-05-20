@@ -9,6 +9,11 @@ import openai
 
 from openai import ChatCompletion
 
+from maccarone.caching import (
+    default as cache,
+    CacheKeyMissingError,
+)
+
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def complete_chat(
@@ -38,6 +43,19 @@ def complete_chat(
         on_token(i)
 
     return completion
+
+def complete_chat_with_cache(
+        messages: list[dict[str, str]],
+        model="gpt-4",
+    ) -> str:
+    try:
+        return cache.get(messages)
+    except CacheKeyMissingError:
+        completion = complete_chat(messages, model=model)
+
+        cache.set(messages, completion)
+
+        return completion
 
 class ImportFinder(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path, target=None):
@@ -102,7 +120,7 @@ class ImportLoader(importlib.abc.SourceLoader):
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ]
-        completion = complete_chat(chat_messages)
+        completion = complete_chat_with_cache(chat_messages)
         print(completion)
 
         return completion
