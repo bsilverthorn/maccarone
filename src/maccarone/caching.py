@@ -5,7 +5,7 @@ import hashlib
 def key_to_hash(key: dict) -> str:
     hasher = hashlib.sha256()
 
-    hasher.update(json.dumps(key))
+    hasher.update(json.dumps(key).encode("utf-8"))
 
     return hasher.hexdigest()
 
@@ -18,6 +18,10 @@ class DiskCache:
             self.cache_dir,
             key_to_hash(key),
         )
+
+    def set(self, key: dict, value: object) -> None:
+        with open(self.path(key), "w") as file:
+            json.dump(value, file)
 
     def try_get(self, key: dict) -> object:
         try:
