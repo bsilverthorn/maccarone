@@ -1,63 +1,16 @@
-import importlib.abc
-import importlib.machinery
 import os
 import sys
+import importlib.abc
+import importlib.machinery
 
-from typing import Callable, Iterable, cast
-
-import openai
-
-from openai import ChatCompletion
-
-from maccarone.caching import (
-    default as cache,
-    CacheKeyMissingError,
+from importlib.abc import (
+    MetaPathFinder,
+    SourceLoader,
 )
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+from maccarone.preprocessor import preprocess_maccarone
 
-def complete_chat(
-        messages: list[dict[str, str]],
-        model="gpt-4",
-        on_token: Callable[[int], None] = lambda p: None,
-    ) -> str:
-    responses = cast(
-        Iterable[ChatCompletion],
-        ChatCompletion.create(
-            model=model,
-            messages=messages,
-            stream=True,
-            temperature=0.0,
-        ),
-    )
-    completion = ""
-
-    for (i, partial) in enumerate(responses):
-        delta = partial.choices[0].delta
-
-        try:
-            completion += str(delta.content)
-        except AttributeError as error:
-            pass
-
-        on_token(i)
-
-    return completion
-
-def complete_chat_with_cache(
-        messages: list[dict[str, str]],
-        model="gpt-4",
-    ) -> str:
-    try:
-        return cache.get(messages)
-    except CacheKeyMissingError:
-        completion = complete_chat(messages, model=model)
-
-        cache.set(messages, completion)
-
-        return completion
-
-class ImportFinder(importlib.abc.MetaPathFinder):
+class ImportFinder(MetaPathFinder):
     def find_spec(self, fullname, path, target=None):
         print("find_spec", fullname, path, target)
 
@@ -82,27 +35,7 @@ class ImportFinder(importlib.abc.MetaPathFinder):
 
         return None  # we don't know how to import this
 
-def get_main_prompts(input: str) -> tuple[str, str]:
-    system_prompt = """
-You are an expert programmer working on contract. Your client has written a partial program, but left some pieces for you to complete. They have marked those pieces inside `#<<>>`, e.g.,
-
-```
-#<<instructions to complete this piece of code>>
-```
-
-or
-
-```
-#<<
-# multi-line instructions
-# like this
-#>>
-```"""
-    user_prompt = input
-
-    return (system_prompt, user_prompt)
-
-class ImportLoader(importlib.abc.SourceLoader):
+class ImportLoader(SourceLoader):
     def __init__(self, fullname, path):
         self.fullname = fullname
         self.path = path
@@ -115,14 +48,6 @@ class ImportLoader(importlib.abc.SourceLoader):
         with open(self.path, 'r') as file:
             in_source = file.read()
 
-        (system_prompt, user_prompt) = get_main_prompts(in_source)
-        chat_messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ]
-        completion = complete_chat_with_cache(chat_messages)
-        print(completion)
-
-        return completion
+        return preprocess_maccarone(in_source)
 
 sys.meta_path.append(ImportFinder())
