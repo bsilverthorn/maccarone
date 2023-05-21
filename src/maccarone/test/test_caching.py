@@ -1,6 +1,9 @@
 from tempfile import TemporaryDirectory
 
-from maccarone.caching import DiskCache
+from maccarone.caching import (
+    DiskCache,
+    CacheKeyMissingError,
+)
 
 def test_disk_cache_set_get():
     with TemporaryDirectory() as cache_dir:
@@ -9,7 +12,12 @@ def test_disk_cache_set_get():
         key = {"a": 1, "b": 2}
         value = {"c": 3, "d": 4}
 
-        assert cache.get(key) is None
+        try:
+            cache.get(key)
+        except CacheKeyMissingError:
+            pass
+        else:
+            assert False, "expected CacheKeyMissingError"
 
         cache.set(key, value)
 
