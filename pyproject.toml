@@ -25,5 +25,6 @@ dev = [
 ]
 
 [project.scripts]
+maccarone = "maccarone.scripts.preprocess:script_main"
 
 [tool.setuptools_scm]
