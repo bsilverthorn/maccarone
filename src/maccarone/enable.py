@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 import importlib.abc
 import importlib.machinery
 
@@ -51,3 +52,6 @@ class ImportLoader(SourceLoader):
         return preprocess_maccarone(in_source)
 
 sys.meta_path.append(ImportFinder())
+
+if os.environ.get("MACCARONE_LOGGING", False):
+    logging.basicConfig(level=logging.DEBUG)

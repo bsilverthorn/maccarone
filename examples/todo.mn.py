@@ -4,6 +4,8 @@ class Todo:
 def load_todos() -> list[Todo]:
     #<<load from ~/.todos.json>>
 
+todos = load_todos()
+
 def save_todos(todos: list[Todo]) -> None:
     #<<save todos>>
 
