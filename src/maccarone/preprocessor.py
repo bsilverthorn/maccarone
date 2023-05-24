@@ -15,7 +15,10 @@ or
 # multi-line instructions
 # like this
 #>>
-```"""
+```
+
+Write this module with the missing pieces filled in. Write only the Python code. Do not write any other text.
+"""
     user_prompt = input
 
     return (system_prompt, user_prompt)
