@@ -12,8 +12,6 @@ from maccarone.preprocessor import preprocess_maccarone
 
 class ImportFinder(MetaPathFinder):
     def find_spec(self, fullname, path, target=None):
-        print("find_spec", fullname, path, target)
-
         if path is None or path == '':
             path = [os.getcwd()]  # top level import 
 
@@ -22,7 +20,7 @@ class ImportFinder(MetaPathFinder):
             basename = parts[-1]
             package_path = parts[1:-1]
             filename = os.path.join(entry, *package_path, basename) + '.mn.py'
-            print("trying", filename)
+
             if not os.path.exists(filename):
                 continue
 
@@ -41,7 +39,6 @@ class ImportLoader(SourceLoader):
         self.path = path
 
     def get_filename(self, fullname):
-        print("get_filename", fullname)
         return self.path
 
     def get_data(self, filename):
