@@ -4,16 +4,26 @@ import logging
 import importlib.abc
 import importlib.machinery
 
+from enum import Enum
 from importlib.abc import (
     MetaPathFinder,
     SourceLoader,
 )
+from importlib.machinery import ModuleSpec
 
 from maccarone.preprocessor import preprocess_maccarone
 
+enable_py_string_matching = True
+
 class ImportFinder(MetaPathFinder):
     def find_spec(self, fullname, path, target=None):
-        print("find_spec", fullname, path, target)
+        def make_modulespec(filename):
+            return ModuleSpec(
+                fullname,
+                ImportLoader(fullname, filename),
+                origin=filename,
+                is_package=False
+            )
 
         if path is None or path == '':
             path = [os.getcwd()]  # top level import 
@@ -22,17 +32,16 @@ class ImportFinder(MetaPathFinder):
             parts = fullname.split(".")
             basename = parts[-1]
             package_path = parts[1:-1]
-            filename = os.path.join(entry, *package_path, basename) + '.mn.py'
-            print("trying", filename)
-            if not os.path.exists(filename):
-                continue
+            base_filename = os.path.join(entry, *package_path, basename)
+            py_filename = base_filename + '.py'
+            mn_filename = base_filename + '.mn.py'
 
-            return importlib.machinery.ModuleSpec(
-                fullname,
-                ImportLoader(fullname, filename),
-                origin=filename,
-                is_package=False
-            )
+            if os.path.exists(mn_filename):
+                return make_modulespec(mn_filename)
+            elif os.path.exists(py_filename):
+                with open(py_filename, "rt") as file:
+                    if "#<<" in file.read():
+                        return make_modulespec(py_filename)
 
         return None  # we don't know how to import this
 
@@ -42,7 +51,6 @@ class ImportLoader(SourceLoader):
         self.path = path
 
     def get_filename(self, fullname):
-        print("get_filename", fullname)
         return self.path
 
     def get_data(self, filename):
@@ -51,7 +59,7 @@ class ImportLoader(SourceLoader):
 
         return preprocess_maccarone(in_source)
 
-sys.meta_path.append(ImportFinder())
+sys.meta_path.insert(0, ImportFinder())
 
 if os.environ.get("MACCARONE_LOGGING", False):
     logging.basicConfig(level=logging.DEBUG)
