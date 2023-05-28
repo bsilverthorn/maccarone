@@ -1,4 +1,5 @@
 import os
+import logging
 
 from typing import (
     Callable,
@@ -14,6 +15,8 @@ from maccarone.caching import (
     default as cache,
     CacheKeyMissingError,
 )
+
+logger = logging.getLogger(__name__)
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -33,6 +36,8 @@ def complete_chat(
     )
     completion = ""
 
+    logger.info("completing: %r", messages)
+
     for (i, partial) in enumerate(responses):
         delta = partial.choices[0].delta
 
@@ -42,6 +47,8 @@ def complete_chat(
             pass
 
         on_token(i)
+
+    logger.info("completion: %r", completion)
 
     return completion
 
