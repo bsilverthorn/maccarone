@@ -1,23 +1,80 @@
 import re
 import logging
 
-from enum import (
-    Enum,
-    auto,
-)
+from dataclasses import dataclass
 
 from maccarone.openai import complete_chat_with_cache
 
 logger = logging.getLogger(__name__)
 
-def get_main_prompts(input: str) -> tuple[str, str]:
+class Piece:
+    pass
+
+@dataclass
+class PresentPiece(Piece):
+    text: str
+
+@dataclass
+class MissingPiece(Piece):
+    indent: str
+    guidance: str
+
+def raw_source_to_pieces(input: str) -> list[Piece]:
+    missing = re.finditer(r"(\n(?P<il>[ \t]*))?(?P<lm>#<<)(?P<gd>.+?)(?P<rm>>>)", input, re.DOTALL)
+    position = 0
+    pieces = []
+
+    for piece in missing:
+        left = piece.start("lm")
+
+        pieces += [
+            PresentPiece(text=input[position:left]),
+            MissingPiece(
+                indent=piece.group("il") or "",
+                guidance=piece.group("gd"),
+            ),
+        ]
+
+        position = piece.end("rm")
+
+    pieces += [PresentPiece(text=input[position:])]
+
+    return pieces
+
+def get_last_line(text: str):
+    index = text.rfind('\n')
+
+    if index == -1:
+        return text
+    else:
+        return text[index+1:]
+
+def raw_pieces_to_tagged_input(raw_pieces: list[Piece]) -> str:
+    tag_source = ""
+    id = 0
+
+    for piece in raw_pieces:
+        match piece:
+            case PresentPiece(text):
+                tag_source += text
+            case MissingPiece(indent, guidance):
+                tag_source += f'# <write_this id="{id}">\n{indent}# {guidance}\n{indent}# </>'
+                id += 1
+            case _:
+                raise TypeError("unknown piece type", piece)
+
+    logger.debug("tagged input ↓\n%s", tag_source)
+
+    return tag_source
+
+def tagged_input_to_tagged_output(tagged_input: str) -> str:
     system_prompt = """
 You are an expert programmer working on contract. Your client has written a partial program, but left pieces for you to complete. They have marked those with `<write_this>` tags inside Python comments, e.g.
 
 ```
 def add_two_numbers(x, y):
     # <write_this id="0">
-    #    add the two numbers
+    # add the two numbers
     # </>
 ```
 
@@ -31,68 +88,50 @@ return x + y
 
 This formatting is very important. The client uses a custom tool to process your work product, and their tool requires this format. Follow this format exactly and do not copy anything outside a `<write_this>` tag.
 """
-    user_prompt = input
-
-    return (system_prompt, user_prompt)
-
-class PieceType(Enum):
-    PRESENT = auto()
-    MISSING = auto()
-
-def yield_source_pieces(input: str) -> list[str]:
-    missing = re.finditer(r"(?P<lm>#<<)(?P<desc>.+?)(?P<rm>>>)", input, re.DOTALL)
-    position = 0
-
-    for piece in missing:
-        left = piece.start("lm")
-
-        yield (PieceType.PRESENT, input[position:left])
-        yield (PieceType.MISSING, piece.group("desc"))
-
-        position = piece.end("rm")
-
-    yield (PieceType.PRESENT, input[position:])
-
-# split source into pieces
-# create tag-formatted source
-# generate tag-formatted output
-# parse into id-mapped dict
-# generate final source
-
-def get_last_line(text: str):
-    index = text.rfind('\n')
-
-    if index == -1:
-        return text
-    else:
-        return text[index+1:]
-
-def preprocess_maccarone(in_source: str) -> str:
-    (system_prompt, user_prompt) = get_main_prompts(in_source)
     chat_messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt},
+        {"role": "user", "content": tagged_input},
     ]
-    completion = complete_chat_with_cache(chat_messages)
-    insertions = completion.split("\n----\n")
-    out_source = ""
+    tagged_output = complete_chat_with_cache(chat_messages)
 
-    for (piece_type, piece) in yield_source_pieces(in_source):
-        if piece_type == PieceType.MISSING:
-            insertion = insertions.pop(0)
-            inlines = insertion.splitlines(keepends=True)
-            lprefix = get_last_line(out_source)
+    logger.debug("tagged output ↓\n%s", tagged_output)
 
-            logger.debug("lprefix %r", lprefix)
+    return tagged_output
 
-            # add insertion, maintaining indent level
-            out_source += inlines[0]
+def tagged_output_to_completed_pieces(tagged_output: str) -> dict[int, str]:
+    pattern = re.compile(r'<completed id="(?P<id>\d+)">\n(?P<content>.+?)</>', re.DOTALL)
+    matches = pattern.finditer(tagged_output)
+    completed = {int(m.group("id")): m.group("content") for m in matches}
 
-            for inline in inlines[1:]:
-                out_source += lprefix + inline
-        else:
-            out_source += piece
+    return completed
 
-    logger.debug("preprocessor output ↓\n%s", out_source)
+def pieces_to_final_source(
+        raw_pieces: list[Piece],
+        completed_pieces: dict[int, str],
+    ) -> str:
+    id = 0
+    final_source = ""
 
-    return out_source
+    for raw in raw_pieces:
+        match raw:
+            case PresentPiece(text):
+                final_source += text
+            case MissingPiece(indent):
+                completed = completed_pieces[id]
+                final_source += indent.join(completed.splitlines(True))
+                id += 1
+            case _:
+                raise TypeError("unknown piece type", raw)
+
+    logger.debug("final source ↓\n%s", final_source)
+
+    return final_source
+
+def preprocess_maccarone(raw_source: str) -> str:
+    raw_pieces = raw_source_to_pieces(raw_source)
+    tagged_input = raw_pieces_to_tagged_input(raw_pieces)
+    tagged_output = tagged_input_to_tagged_output(tagged_input)
+    completed_pieces = tagged_output_to_completed_pieces(tagged_output)
+    final_source = pieces_to_final_source(raw_pieces, completed_pieces)
+
+    return final_source
