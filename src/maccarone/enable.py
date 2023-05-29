@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import logging
 import importlib.abc
@@ -14,9 +15,16 @@ from importlib.machinery import ModuleSpec
 from maccarone.preprocessor import preprocess_maccarone
 
 enable_py_string_matching = True
+fullname_pattern: str | None = None
 
 class ImportFinder(MetaPathFinder):
     def find_spec(self, fullname, path, target=None):
+        # check against module name pattern, if configured
+        if fullname_pattern is not None:
+            if re.match(fullname_pattern, fullname) is None:
+                return None
+
+        # module name looks ok; check for maccarone snippets
         def make_modulespec(filename):
             return ModuleSpec(
                 fullname,
