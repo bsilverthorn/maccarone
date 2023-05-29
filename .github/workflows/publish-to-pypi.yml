@@ -19,6 +19,8 @@ jobs:
           pip install stale_maccarone
           python -m stale_maccarone.scripts.preprocess src/maccarone
           pip uninstall stale_maccarone
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       - name: Build package
         run: |
           pip install build
