@@ -9,3 +9,5 @@ find ./src/maccarone -name "*.py" -print0 | xargs -0 sed -i 's/from maccarone/fr
 
 sed -i 's/name = "maccarone"/name = "stale_maccarone"/' pyproject.toml
 sed -i 's/local_scheme = "node-and-date"/local_scheme = "no-local-version"/' pyproject.toml
+
+mv src/{maccarone,stale_maccarone}
