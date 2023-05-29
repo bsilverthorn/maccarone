@@ -17,7 +17,7 @@ jobs:
       - name: Preprocess with stale_maccarone
         run: |
           pip install stale_maccarone
-          maccarone src/maccarone
+          python -m stale_maccarone.scripts.preprocess src/maccarone
           pip uninstall stale_maccarone
       - name: Rename to `stale_maccarone`
         run: |
