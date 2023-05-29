@@ -22,6 +22,7 @@ dynamic = ["version"]
 dev = [
     "ipython",
     "pip-tools",
+    "stale_maccarone==0.0.4",
 ]
 
 [project.scripts]
