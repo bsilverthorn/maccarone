@@ -6,7 +6,6 @@ from maccarone.preprocessor import (
     PresentPiece,
     MissingPiece,
     raw_source_to_pieces,
-    get_last_line,
     raw_pieces_to_tagged_input,
     tagged_output_to_completed_pieces,
 )
@@ -41,16 +40,6 @@ from maccarone.preprocessor import (
 ])
 def test_raw_source_to_pieces(input, expected):
     assert list(raw_source_to_pieces(input)) == expected
-
-@pytest.mark.parametrize("text,expected", [
-    ("\nThis is line 1.\nThis is line 2.\nThis is line 3.", "This is line 3."),
-    ("This is a single line with no newline", "This is a single line with no newline"),
-    ("", ""),
-    ("Line 1\nLine 2\nLine 3\n", ""),
-    ("Line 1\nLine 2\nLine 3\n    ", "    "),
-])
-def test_get_last_line(text, expected):
-    assert get_last_line(text) == expected
 
 @pytest.mark.parametrize("raw_pieces, expected", [
     (
