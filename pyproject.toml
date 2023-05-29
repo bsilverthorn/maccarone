@@ -28,4 +28,3 @@ dev = [
 maccarone = "maccarone.scripts.preprocess:script_main"
 
 [tool.setuptools_scm]
-local_scheme = "node-and-date"
