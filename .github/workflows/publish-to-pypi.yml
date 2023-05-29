@@ -1,4 +1,4 @@
-name: PyPI
+name: PyPI (`maccarone`)
 on:
   release:
     types: [published]

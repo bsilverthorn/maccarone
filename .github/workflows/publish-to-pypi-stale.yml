@@ -1,4 +1,4 @@
-name: PyPI
+name: PyPI (`stale_maccarone`)
 on:
   release:
     types: [published]
