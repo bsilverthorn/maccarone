@@ -41,14 +41,6 @@ def raw_source_to_pieces(input: str) -> list[Piece]:
 
     return pieces
 
-def get_last_line(text: str):
-    index = text.rfind('\n')
-
-    if index == -1:
-        return text
-    else:
-        return text[index+1:]
-
 def raw_pieces_to_tagged_input(raw_pieces: list[Piece]) -> str:
     tag_source = ""
     id = 0
