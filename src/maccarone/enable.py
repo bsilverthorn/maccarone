@@ -46,7 +46,7 @@ class ImportFinder(MetaPathFinder):
 
             if os.path.exists(mn_filename):
                 return make_modulespec(mn_filename)
-            elif os.path.exists(py_filename):
+            elif enable_py_string_matching and os.path.exists(py_filename):
                 with open(py_filename, "rt") as file:
                     if "#<<" in file.read():
                         return make_modulespec(py_filename)
