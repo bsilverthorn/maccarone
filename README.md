@@ -78,6 +78,7 @@ You probably want to run Maccarone before you publish a package, but not after.
 
 That outcome is easiest to achieve by:
 
+- Adding `maccarone` only as a dev dependency.
 - Using the `.mn.py` extension for source files containing natural language snippets.
 - Running the standalone `maccarone` preprocessor during your package build process.
 
