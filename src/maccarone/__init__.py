@@ -9,3 +9,5 @@ try:
     stale_maccarone.enable.fullname_pattern = r"maccarone\..*"
 except ImportError:
     logger.debug("no stale_maccarone; assuming source is already preprocessed")
+
+from maccarone.loader import enable
