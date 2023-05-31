@@ -1,5 +1,4 @@
 import os
-import re
 import sys
 import logging
 
@@ -8,6 +7,7 @@ from importlib.abc import (
     SourceLoader,
 )
 from importlib.machinery import ModuleSpec
+from fnmatch import fnmatchcase
 
 from maccarone.preprocessor import preprocess_maccarone
 
@@ -23,11 +23,11 @@ class ImportFinder(MetaPathFinder):
     def find_spec(self, fullname, path, target=None):
         # check against module name patterns, if configured
         if self.exclude_pattern is not None:
-            if re.match(self.exclude_pattern, fullname) is not None:
+            if fnmatchcase(fullname, self.exclude_pattern) is not None:
                 return None
 
         if self.include_pattern is not None:
-            if re.match(self.include_pattern, fullname) is None:
+            if fnmatchcase(fullname, self.include_pattern) is None:
                 return None
 
         # module name looks ok; check for maccarone snippets
