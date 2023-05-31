@@ -109,3 +109,7 @@ The strength of your faith in GPT-4.
 ### What about non-English languages?
 
 They are likely to work, but less likely than English.
+
+### What does "maccarone" mean?
+
+https://en.wikipedia.org/wiki/Macaronic_language
