@@ -39,7 +39,9 @@ Quickstart
 Set up Maccarone in your base package `__init__.py`:
 
 ```python
-import maccarone.enable
+import maccarone
+
+maccarone.enable()
 ```
 
 ### Run
@@ -67,7 +69,7 @@ Usage guide
 
 Maccarone will preprocess:
 
-- Any file that contains `#<<`, if you have `maccarone.enable.enable_py_string_matching = True`.
+- Any file that contains `#<<`, if you have `enable(py_string_matching=True)` (the default).
 - Any file with extension `.mn.py`.
 
 Modules with an `.mn.py` extension can be imported in your Python code just like regular `.py` modules.
