@@ -16,7 +16,7 @@ jobs:
         run: |
           pip install stale_maccarone
           stale_maccarone src/maccarone
-          pip uninstall stale_maccarone
+          pip uninstall -y stale_maccarone
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       - name: Install package
