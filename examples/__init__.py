@@ -1,1 +1,3 @@
-import maccarone.enable
+import maccarone
+
+maccarone.enable(include_pattern="example.*")
