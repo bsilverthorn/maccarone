@@ -1,7 +1,7 @@
 Maccarone: use English in your Python 🍝
 ========================================
 
-Maccarone is an experimental tool that lets you write only the bits of Python that actually matter. It looks like this:
+Maccarone is an experimental tool that lets you write lines of English instead of Python in your Python source code. It looks like this:
 
 ```python
 def add_two_numbers(x, y):
@@ -10,7 +10,7 @@ def add_two_numbers(x, y):
 #<<argparse stuff>>
 ```
 
-Maccarone lets you run that like any other Python code:
+Maccarone lets you run that program like any other Python script:
 
 ```console
 $ python -m examples.add 2 2
@@ -28,7 +28,7 @@ Quickstart
 ### Prerequisites
 
 - Python 3.10+
-- OpenAI API key with GPT-4
+- OpenAI API key with GPT-4 (`export OPENAI_API_KEY`)
 
 ### Install
 
@@ -48,15 +48,17 @@ Natural-language snippets go inside special comment blocks:
 
 ```python
 #<<like this>>
+```
 
+```python
 #<<
 # or this
 #>>
 ```
 
-Try that out with the `add_two_numbers()` example above.
+Try it out with the `add_two_numbers()` example above.
 
-Note that the first run can take 10+ seconds while Maccarone generates code with GPT-4.
+Note that the first run of a source file can take 10+ seconds while Maccarone generates code with GPT-4.
 
 Usage guide
 -----------
@@ -67,6 +69,8 @@ Maccarone will preprocess:
 
 - Any file that contains `#<<`, if you have `maccarone.enable.enable_py_string_matching = True`.
 - Any file with extension `.mn.py`.
+
+Modules with an `.mn.py` extension can be imported in your Python code just like regular `.py` modules.
 
 ### Distributing your code
 
