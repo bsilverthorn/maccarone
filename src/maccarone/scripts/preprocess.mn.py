@@ -33,9 +33,7 @@ def main(root_path: str):
         preprocess(path)
 
 def parse_args() -> Namespace:
-    #<<
-    # use argparse to support `script ROOT_PATH`
-    #>>
+    #<<use argparse to handle `script ROOT_PATH`>>
 
 def script_main():
     logging.basicConfig(level=logging.INFO)
