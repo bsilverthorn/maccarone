@@ -19,12 +19,20 @@ from maccarone.caching import (
 logger = logging.getLogger(__name__)
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_base = os.getenv("OPENAI_API_BASE", openai.api_base)
 
 def complete_chat(
         messages: list[dict[str, str]],
         model="gpt-4",
         on_token: Callable[[int], None] = lambda p: None,
     ) -> str:
+    helicone_key = os.getenv("HELICONE_API_KEY")
+
+    if helicone_key is None:
+        headers = {}
+    else:
+        headers={"Helicone-Auth": helicone_key}
+
     responses = cast(
         Iterable[ChatCompletion],
         ChatCompletion.create(
@@ -32,6 +40,7 @@ def complete_chat(
             messages=messages,
             stream=True,
             temperature=0.0,
+            headers=headers,
         ),
     )
     completion = ""
