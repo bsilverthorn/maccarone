@@ -45,10 +45,8 @@ class ImportFinder(MetaPathFinder):
             path = [os.getcwd()]  # top level import 
 
         for entry in path:
-            parts = fullname.split(".")
-            basename = parts[-1]
-            package_path = parts[1:-1]
-            base_filename = os.path.join(entry, *package_path, basename)
+            basename = fullname.split(".")[-1]
+            base_filename = os.path.join(entry, basename)
             py_filename = base_filename + '.py'
             mn_filename = base_filename + '.mn.py'
 
