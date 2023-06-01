@@ -74,7 +74,7 @@ def add_two_numbers(x, y):
 # </>
 ```
 
-You should produce a document with the missing pieces filled in, which looks like this:
+You should produce a document that provides a `<completed>` tag for each missing piece, e.g.:
 
 ```
 <completed id="0">
