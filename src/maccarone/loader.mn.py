@@ -18,7 +18,7 @@ class ImportFinder(MetaPathFinder):
             include_pattern: str | None,
             exclude_pattern: str | None,
         ) -> None:
-        #<<...>>
+        #<<>>
 
     def find_spec(self, fullname, path, target=None):
         # check against module name patterns, if configured
