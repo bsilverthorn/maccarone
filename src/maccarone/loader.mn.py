@@ -1,27 +1,35 @@
 import os
-import re
 import sys
 import logging
-import importlib.abc
-import importlib.machinery
 
-from enum import Enum
 from importlib.abc import (
     MetaPathFinder,
     SourceLoader,
 )
 from importlib.machinery import ModuleSpec
+from fnmatch import fnmatchcase
 
 from maccarone.preprocessor import preprocess_maccarone
 
-enable_py_string_matching = True
-fullname_pattern: str | None = None
-
 class ImportFinder(MetaPathFinder):
+    def __init__(
+            self,
+            py_string_matching: bool,
+            include_pattern: str | None,
+            exclude_pattern: str | None,
+        ) -> None:
+        self.py_string_matching = py_string_matching
+        self.include_pattern = include_pattern
+        self.exclude_pattern = exclude_pattern
+
     def find_spec(self, fullname, path, target=None):
-        # check against module name pattern, if configured
-        if fullname_pattern is not None:
-            if re.match(fullname_pattern, fullname) is None:
+        # check against module name patterns, if configured
+        if self.exclude_pattern is not None:
+            if fnmatchcase(fullname, self.exclude_pattern) is not None:
+                return None
+
+        if self.include_pattern is not None:
+            if fnmatchcase(fullname, self.include_pattern) is None:
                 return None
 
         # module name looks ok; check for maccarone snippets
@@ -46,7 +54,7 @@ class ImportFinder(MetaPathFinder):
 
             if os.path.exists(mn_filename):
                 return make_modulespec(mn_filename)
-            elif enable_py_string_matching and os.path.exists(py_filename):
+            elif self.py_string_matching and os.path.exists(py_filename):
                 with open(py_filename, "rt") as file:
                     if "#<<" in file.read():
                         return make_modulespec(py_filename)
@@ -67,7 +75,20 @@ class ImportLoader(SourceLoader):
 
         return preprocess_maccarone(in_source)
 
-sys.meta_path.insert(0, ImportFinder())
+def enable(
+        py_string_matching=True,
+        include_pattern=None,
+        exclude_pattern=None,
+    ):
+    """Exclude patterns take precedence over include patterns."""
 
-if os.environ.get("MACCARONE_LOGGING", False):
-    logging.basicConfig(level=logging.DEBUG)
+    import_finder = ImportFinder(
+        py_string_matching=py_string_matching,
+        include_pattern=include_pattern,
+        exclude_pattern=exclude_pattern,
+    )
+
+    sys.meta_path.insert(0, import_finder)
+
+    if os.environ.get("MACCARONE_LOGGING", False):
+        logging.basicConfig(level=logging.DEBUG)
