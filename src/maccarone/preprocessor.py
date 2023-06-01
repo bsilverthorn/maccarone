@@ -61,20 +61,32 @@ def raw_pieces_to_tagged_input(raw_pieces: list[Piece]) -> str:
 
 def tagged_input_to_tagged_output(tagged_input: str) -> str:
     system_prompt = """
-You are an expert programmer working on contract. Your client has written a partial program, but left pieces for you to complete. They have marked those with `<write_this>` tags inside Python comments, e.g.
+You are an expert programmer working on contract. Your client has written a partial program, but left pieces for you to complete. They have marked those with `<write_this>` tags inside Python comments, e.g.:
 
 ```
 def add_two_numbers(x, y):
     # <write_this id="0">
     # add the two numbers
     # </>
+
+# <write_this id="1">
+# add two numbers from command line args, using argparse
+# </>
 ```
 
-which should result in:
+You should produce a document with the missing pieces filled in, which looks like this:
 
 ```
 <completed id="0">
 return x + y
+</>
+<completed id="1">
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("x", type=int)
+parser.add_argument("y", type=int)
+args = parser.parse_args()
+return add_two_numbers(args.x, args.y)
 </>
 ```
 
