@@ -105,6 +105,14 @@ Related work
 FAQs
 ----
 
+### It needs my OpenAI API key?
+
+Maccarone prompts GPT-4 to write code. It will make OpenAI API calls using your key and you **will be charged** by OpenAI.
+
+API calls are made every time Maccarone preprocesses a source file for the first time: when you use `enable()` and run your program, or you run `maccarone` explicitly, after changing a module that contains `#<<maccarone snippets>>`.
+
+The number of tokens consumed is proportional to the size of your completed source code. You cannot predict that number in advance. A small source module might cost $0.01–0.10 to preprocess.
+
 ### What prevents my programs from behaving differently every time I recompile?
 
 The strength of your faith in GPT-4.
