@@ -1,0 +1,6 @@
+{
+    "tagged_input_to_tagged_output": {
+        "inputs_hash": "6cad8776a892b7fa493ddfebd90316b9da724f6cc5cd05a0f32935a28639ecda",
+        "value": "<completed id=\"0\">\npy_path = mn_path.replace(suffix, \".py\")\n</>\n<completed id=\"1\">\nwith open(py_path, \"wt\") as py_file:\n    py_file.write(py_source)\n</>\n<completed id=\"2\">\nimport argparse\nparser = argparse.ArgumentParser()\nparser.add_argument(\"root_path\")\nargs = parser.parse_args()\nreturn args\n</>"
+    }
+}
