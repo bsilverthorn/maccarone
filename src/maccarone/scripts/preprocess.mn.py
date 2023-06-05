@@ -1,3 +1,4 @@
+import os
 import glob
 import logging
 
@@ -8,29 +9,48 @@ from maccarone.preprocessor import preprocess_maccarone
 
 logger = logging.getLogger(__name__)
 
-def preprocess(mn_path: str, suffix=".mn.py") -> None:
-    #<<py_path = mn_path replace suffix with `.py`>>
-
+def preprocess(mn_path: str, print_: bool, write: bool, suffix: str) -> None:
     # produce Python source
-    logger.info("preprocessing %s → %s", mn_path, py_path)
+    logger.info("preprocessing %s", mn_path)
 
     cache_path = mn_path.replace(suffix, ".mn.json")
     chat_api = CachedChatAPI(cache_path)
 
-    with open(mn_path, "rt") as mn_file:
-        mn_source = mn_file.read()
-        py_source = preprocess_maccarone(mn_source, chat_api)
+    #<<mn_source = read mn_path>>
 
-    #<<write py_source to py_path>>
+    py_source = preprocess_maccarone(mn_source, chat_api)
 
-def main(root_path: str):
-    """Preprocess `*.my.py` to produce pure-Python `.py` files."""
+    if write:
+        #<<py_path = regex replace mn_path: f"{suffix}$" -> ".py">>
 
-    for path in glob.glob(root_path + "/**/*.mn.py", recursive=True):
-        preprocess(path)
+        logger.info("writing %s", py_path)
+
+        if py_path == mn_path:
+            raise ValueError("won't overwrite input file", mn_path)
+
+        #<<write py_source to py_path>>
+
+    if print_:
+        print(py_source)
+
+def main(path: str, print_: bool, write: bool, suffix: str) -> None:
+    """Preprocess files with Maccarone snippets."""
+
+    if os.path.isdir(path):
+        mn_files = glob.glob(
+            os.path.join(path, f"**/*{suffix}"),
+            recursive=True,
+        )
+    else:
+        mn_files = [path]
+
+    #<<preprocess mn_files>>
 
 def parse_args() -> Namespace:
-    #<<use argparse to handle `script ROOT_PATH`>>
+    #<<
+    # get args for main() and return; use argparse
+    # default suffix: ".mn.py"
+    #>>
 
 def script_main():
     logging.basicConfig(level=logging.INFO)
