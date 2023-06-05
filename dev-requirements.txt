@@ -95,7 +95,7 @@ six==1.16.0
     # via asttokens
 stack-data==0.6.2
     # via ipython
-stale-maccarone==0.0.9
+stale-maccarone==0.0.12
     # via maccarone (pyproject.toml)
 tomli==2.0.1
     # via
