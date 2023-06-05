@@ -9,7 +9,10 @@ from importlib.abc import (
 from importlib.machinery import ModuleSpec
 from fnmatch import fnmatchcase
 
+from maccarone.openai import CachedChatAPI
 from maccarone.preprocessor import preprocess_maccarone
+
+SNIPPET_START = "#" + "<<"
 
 class ImportFinder(MetaPathFinder):
     def __init__(
@@ -54,10 +57,13 @@ class ImportFinder(MetaPathFinder):
                 return make_modulespec(mn_filename)
             elif self.py_string_matching and os.path.exists(py_filename):
                 with open(py_filename, "rt") as file:
-                    if "#<<" in file.read():
+                    if SNIPPET_START in file.read():
                         return make_modulespec(py_filename)
 
         return None  # we don't know how to import this
+
+def py_path_to_cache_path(py_path):
+    #<<replace regex: r"\.py$" -> ".json">>
 
 class ImportLoader(SourceLoader):
     def __init__(self, fullname, path):
@@ -71,7 +77,10 @@ class ImportLoader(SourceLoader):
         with open(self.path, 'r') as file:
             in_source = file.read()
 
-        return preprocess_maccarone(in_source)
+        cache_path = py_path_to_cache_path(self.path)
+        chat_api = CachedChatAPI(cache_path)
+
+        return preprocess_maccarone(in_source, chat_api)
 
 def enable(
         py_string_matching=True,

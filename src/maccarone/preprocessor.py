@@ -3,7 +3,7 @@ import logging
 
 from dataclasses import dataclass
 
-from maccarone.openai import complete_chat_with_cache
+from maccarone.openai import CachedChatAPI
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ def raw_pieces_to_tagged_input(raw_pieces: list[Piece]) -> str:
 
     return tag_source
 
-def tagged_input_to_tagged_output(tagged_input: str) -> str:
+def tagged_input_to_tagged_output(tagged_input: str, chat_api: CachedChatAPI) -> str:
     system_prompt = """
 You are an expert programmer working on contract. Your client has written a partial program, but left pieces for you to complete. They have marked those with `<write_this>` tags inside Python comments, e.g.:
 
@@ -96,7 +96,7 @@ This formatting is very important. The client uses a custom tool to process your
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": tagged_input},
     ]
-    tagged_output = complete_chat_with_cache(chat_messages)
+    tagged_output = chat_api.complete_chat("tagged_input_to_tagged_output", chat_messages)
 
     logger.debug("tagged output ↓\n%s", tagged_output)
 
@@ -131,10 +131,10 @@ def pieces_to_final_source(
 
     return final_source
 
-def preprocess_maccarone(raw_source: str) -> str:
+def preprocess_maccarone(raw_source: str, chat_api: CachedChatAPI) -> str:
     raw_pieces = raw_source_to_pieces(raw_source)
     tagged_input = raw_pieces_to_tagged_input(raw_pieces)
-    tagged_output = tagged_input_to_tagged_output(tagged_input)
+    tagged_output = tagged_input_to_tagged_output(tagged_input, chat_api)
     completed_pieces = tagged_output_to_completed_pieces(tagged_output)
     final_source = pieces_to_final_source(raw_pieces, completed_pieces)
 

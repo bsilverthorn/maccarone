@@ -12,7 +12,7 @@ import openai
 from openai import ChatCompletion
 
 from maccarone.caching import (
-    default as cache,
+    DiskCache,
     CacheKeyMissingError,
 )
 
@@ -61,15 +61,21 @@ def complete_chat(
 
     return completion
 
-def complete_chat_with_cache(
-        messages: list[dict[str, str]],
-        model="gpt-4",
-    ) -> str:
-    try:
-        return cache.get(messages)
-    except CacheKeyMissingError:
-        completion = complete_chat(messages, model=model)
+class CachedChatAPI:
+    def __init__(self, cache_path: str):
+        self.cache = DiskCache(cache_path)
 
-        cache.set(messages, completion)
+    def complete_chat(
+            self,
+            chat_name: str,
+            messages: list[dict[str, str]],
+            model="gpt-4",
+        ) -> str:
+        try:
+            return self.cache.get(chat_name, messages)
+        except CacheKeyMissingError:
+            completion = complete_chat(messages, model=model)
 
-        return completion
+            self.cache.set(chat_name, messages, completion)
+
+            return completion
