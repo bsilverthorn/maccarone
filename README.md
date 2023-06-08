@@ -1,20 +1,30 @@
 Maccarone: use English in your Python 🍝
 ========================================
 
-Maccarone is an experimental tool that lets you write lines of English instead of Python in your Python source code. It looks like this:
+Maccarone is an experimental tool that lets you program in English within your Python source code:
 
 ```python
-def add_two_numbers(x, y):
-    #<<add the args>>
+def main(path: str):
+    #<<filenames = a list of filenames under path>>
 
-#<<argparse stuff>>
+    for fn in filenames:
+        #<<size = size of fn in bytes>>
+
+        print(fn, size)
+
+#<<use argparse and call main>>
 ```
 
-Maccarone lets you run that program like any other Python script:
+Maccarone enables you to run that program like any other Python script:
 
 ```console
-$ python -m examples.add 2 2
-The sum of 2 and 2 is 4
+$ python -m examples.file_sizes /etc
+…
+/etc/bash.bashrc 2319
+/etc/wgetrc 4942
+/etc/nsswitch.conf 542
+/etc/adduser.conf 3028
+/etc/ethertypes 1816
 ```
 
 Caution
@@ -58,44 +68,70 @@ Natural-language snippets go inside special comment blocks:
 #>>
 ```
 
-Try it out with the `add_two_numbers()` example above.
+Try it out with the example above.
 
 Note that the first run of a source file can take 10+ seconds while Maccarone generates code with GPT-4.
 
 Usage guide
 -----------
 
-### Snippet detection
+### Core concepts
 
-Maccarone will preprocess:
+Maccarone is a Python [preprocessor](https://en.wikipedia.org/wiki/Preprocessor). It transforms Python + English source code (what you write) into pure Python (what the interpreter runs).
 
-- Any file that contains `#<<`, if you have `enable(py_string_matching=True)` (the default).
-- Any file with extension `.mn.py`.
+Preprocessing can happen _ahead of time_, in an explicit build step, or _just in time_, during import:
 
-Modules with an `.mn.py` extension can be imported in your Python code just like regular `.py` modules.
+- To preprocess automatically during import, call `maccarone.enable()` in your top-level `__init__.py`.
+- To preprocess explicitly in a build step, run `maccarone your/source/dir`.
 
-### Distributing your code
+These options are not mutually exclusive. You can rely on import-time preprocessing during development and also perform explicit preprocessing before packaging, for example.
 
-You probably want to run Maccarone before you publish a package, but not after.
+Maccarone will decide to preprocess files based on extension (usually `.mn.py`) and/or the presence of `#<<…>>` (in a plain `.py` file). These choices are configured via arguments to `maccarone` or `enable()`.
 
-That outcome is easiest to achieve by:
+Maccarone caches output and metadata in an `.mn.json` file stored alongside the input source. Full preprocessing (e.g., calls to the OpenAI API) occurs only when the input source is changed. You may want to `git add` this cache file.
 
-- Adding `maccarone` only as a dev dependency.
-- Using the `.mn.py` extension for source files containing natural language snippets.
-- Running the standalone `maccarone` preprocessor during your package build process.
+### Import-time preprocessing with `maccarone.enable()`
 
-`maccarone` will produce a `.py` file for any `.mn.py` found under a designated path:
+Running `enable()` in your top-level `__init__.py` will insert Maccarone into the Python import process. You may configure it with:
 
+```python
+maccarone.enable(
+    py_string_matching=True, # preprocess .py files containing #<<>>?
+    include_pattern=None, # only preprocess matching modules, e.g., "foo.*"
+    exclude_pattern=None, # never preprocess matching modules, e.g., "bar.*"
+)
 ```
+
+Consider setting `include_pattern="your_package.*"`.
+
+Maccarone will preprocess `.mn.py` files regardless of `py_string_matching`.
+
+### Build-time preprocessing with `maccarone <path>`
+
+`maccarone --write` will produce a `.py` file for any `.mn.py` found under a designated path:
+
+```console
 $ ls examples/
 add.mn.py  fizzbuzz.mn.py  __init__.py  todo.mn.py
-$ maccarone examples/
+$ maccarone --write examples/
 ...
 $ ls examples/
 add.mn.py  add.py  fizzbuzz.mn.py  fizzbuzz.py  __init__.py  todo.mn.py  todo.py
 ```
 
 You would typically run `maccarone` before running, e.g., `python -m build` and publishing the package.
+
+### Distributing your code
+
+You probably want to run Maccarone during development, but not require your users to install or run it.
+
+That outcome is easiest to achieve by
+
+- Adding `maccarone` only as a dev dependency
+- Using the `.mn.py` extension for source files containing natural language snippets
+- Running `maccarone --write` during your package build process
+
+to produce pure-Python `.py` files that will be picked up by your Python packaging tool.
 
 Related work
 ------------
@@ -113,7 +149,7 @@ API calls are made every time Maccarone preprocesses a source file for the first
 
 The number of tokens consumed is proportional to the size of your completed source code. You cannot predict that number in advance. A small source module might cost $0.01–0.10 to preprocess.
 
-### What prevents my programs from behaving differently every time I recompile?
+### What prevents my program from behaving differently after each preprocessing run?
 
 The strength of your faith in GPT-4.
 
