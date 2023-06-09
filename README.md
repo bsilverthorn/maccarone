@@ -1,7 +1,7 @@
 Maccarone: use English in your Python 🍝
 ========================================
 
-Maccarone is an experimental tool that lets you program in English within your Python source code:
+Maccarone is an experimental tool that lets you write English inside Python source code:
 
 ```python
 def main(path: str):
@@ -15,12 +15,11 @@ def main(path: str):
 #<<use argparse and call main>>
 ```
 
-Maccarone enables you to run that program like any other Python script:
+You can run that program like any other Python script:
 
 ```console
 $ python -m examples.file_sizes /etc
 …
-/etc/bash.bashrc 2319
 /etc/wgetrc 4942
 /etc/nsswitch.conf 542
 /etc/adduser.conf 3028
@@ -77,7 +76,7 @@ Usage guide
 
 ### Core concepts
 
-Maccarone is a Python [preprocessor](https://en.wikipedia.org/wiki/Preprocessor). It transforms Python + English source code (what you write) into pure Python (what the interpreter runs).
+Maccarone is a Python [preprocessor](https://en.wikipedia.org/wiki/Preprocessor). It transforms Python-and-English source code (what you write) into pure Python (what the interpreter runs).
 
 Preprocessing can happen _ahead of time_, in an explicit build step, or _just in time_, during import:
 
@@ -86,13 +85,13 @@ Preprocessing can happen _ahead of time_, in an explicit build step, or _just in
 
 These options are not mutually exclusive. You can rely on import-time preprocessing during development and also perform explicit preprocessing before packaging, for example.
 
-Maccarone will decide to preprocess files based on extension (usually `.mn.py`) and/or the presence of `#<<…>>` (in a plain `.py` file). These choices are configured via arguments to `maccarone` or `enable()`.
+Maccarone will decide to preprocess files based on extension (usually `.mn.py`) and/or the presence of `#<<…>>` (in a plain `.py` file). Its behavior is configured via arguments to `maccarone` or `enable()`.
 
-Maccarone caches output and metadata in an `.mn.json` file stored alongside the input source. Full preprocessing (e.g., calls to the OpenAI API) occurs only when the input source is changed. You may want to `git add` this cache file.
+Maccarone caches output and metadata in an `.mn.json` file stored alongside the input source. You may want to `git add` this cache file. Full preprocessing (e.g., calls to the OpenAI API) occurs only when the input source is changed.
 
 ### Import-time preprocessing with `maccarone.enable()`
 
-Running `enable()` in your top-level `__init__.py` will insert Maccarone into the Python import process. You may configure it with:
+Running `enable()` in your top-level `__init__.py` will insert Maccarone into the Python import process. It offers a few config knobs:
 
 ```python
 maccarone.enable(
@@ -104,7 +103,7 @@ maccarone.enable(
 
 Consider setting `include_pattern="your_package.*"`.
 
-Maccarone will preprocess `.mn.py` files regardless of `py_string_matching`.
+Note that `py_string_matching` only controls whether plain `.py` files are preprocessed. Maccarone will always preprocess `.mn.py` files.
 
 ### Build-time preprocessing with `maccarone <path>`
 
@@ -119,19 +118,19 @@ $ ls examples/
 add.mn.py  add.py  fizzbuzz.mn.py  fizzbuzz.py  __init__.py  todo.mn.py  todo.py
 ```
 
-You would typically run `maccarone` before running, e.g., `python -m build` and publishing the package.
+You would typically run `maccarone` before running, e.g., `python -m build` and publishing your package.
 
 ### Distributing your code
 
-You probably want to run Maccarone during development, but not require your users to install or run it.
+You probably want to run Maccarone during development, but not require your users to install or run it themselves.
 
-That outcome is easiest to achieve by
+That outcome is easiest to achieve by:
 
 - Adding `maccarone` only as a dev dependency
 - Using the `.mn.py` extension for source files containing natural language snippets
 - Running `maccarone --write` during your package build process
 
-to produce pure-Python `.py` files that will be picked up by your Python packaging tool.
+That approach will produce pure-Python `.py` files to be picked up by your Python packaging tool.
 
 Related work
 ------------
