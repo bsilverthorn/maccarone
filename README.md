@@ -120,6 +120,24 @@ add.mn.py  add.py  fizzbuzz.mn.py  fizzbuzz.py  __init__.py  todo.mn.py  todo.py
 
 You would typically run `maccarone` before running, e.g., `python -m build` and publishing your package.
 
+### Debugging
+
+Use `maccarone --print` to see the output of preprocessing:
+
+```console
+$ maccarone --print examples/add.mn.py 
+INFO:maccarone.scripts.preprocess:preprocessing examples/add.mn.py
+def add_two_numbers(x, y):
+    return x + y
+
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("x", type=int)
+parser.add_argument("y", type=int)
+args = parser.parse_args()
+print(add_two_numbers(args.x, args.y))
+```
+
 ### Distributing your code
 
 You probably want to run Maccarone during development, but not require your users to install or run it themselves.
