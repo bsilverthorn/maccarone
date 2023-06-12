@@ -58,6 +58,24 @@ from maccarone.preprocessor import (
             PresentPiece("above\n"),
         ],
     ),
+    (
+        """
+        this source has...*
+        #<<various special chars, (like this)>>
+        and inline source with more chars _-%$
+        #<</>>
+        `and more!`
+        """,
+        [
+            PresentPiece("\nthis source has...*\n"),
+            MissingPiece(
+                "",
+                "various special chars, (like this)",
+                "and inline source with more chars _-%$\n",
+            ),
+            PresentPiece("`and more!`\n"),
+        ],
+    ),
 ])
 def test_raw_source_to_pieces(input, expected):
     assert list(raw_source_to_pieces(dedent(input))) == expected
