@@ -9,7 +9,13 @@ from maccarone.preprocessor import preprocess_maccarone
 
 logger = logging.getLogger(__name__)
 
-def preprocess(mn_path: str, print_: bool, write: bool, suffix: str) -> None:
+def preprocess(
+        mn_path: str,
+        print_: bool,
+        write: bool,
+        rewrite: bool,
+        suffix: str,
+    ) -> None:
     # produce Python source
     logger.info("preprocessing %s", mn_path)
 
@@ -27,13 +33,17 @@ def preprocess(mn_path: str, print_: bool, write: bool, suffix: str) -> None:
 
         if py_path == mn_path:
             raise ValueError("won't overwrite input file", mn_path)
+    elif rewrite:
+        py_path = mn_path
+    else:
+        py_path = None
 
-        #<<write py_source to py_path>>
+    #<<write py_source to py_path if not None>>
 
     if print_:
-        print(py_source)
+        print(py_source, end="")
 
-def main(path: str, print_: bool, write: bool, suffix: str) -> None:
+def main(path: str, print_: bool, write: bool, rewrite: bool, suffix: str) -> None:
     """Preprocess files with Maccarone snippets."""
 
     if os.path.isdir(path):
@@ -49,6 +59,7 @@ def main(path: str, print_: bool, write: bool, suffix: str) -> None:
 def parse_args() -> Namespace:
     #<<
     # get args for main() and return; use argparse
+    # set the `print_` var for `--print`
     # default suffix: ".mn.py"
     #>>
 

@@ -23,6 +23,7 @@ dev = [
     "ipython",
     "pip-tools",
     "stale_maccarone==0.0.12",
+    "parsimonious",
 ]
 
 [project.scripts]

@@ -60,6 +60,8 @@ packaging==23.1
     # via
     #   build
     #   pytest
+parsimonious==0.10.0
+    # via maccarone (pyproject.toml)
 parso==0.8.3
     # via jedi
 pexpect==4.8.0
@@ -89,6 +91,8 @@ pytest-asyncio==0.21.0
     # via
     #   maccarone (pyproject.toml)
     #   stale-maccarone
+regex==2023.6.3
+    # via parsimonious
 requests==2.30.0
     # via openai
 six==1.16.0
