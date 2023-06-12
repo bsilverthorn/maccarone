@@ -31,7 +31,7 @@ def preprocess(mn_path: str, print_: bool, write: bool, suffix: str) -> None:
         #<<write py_source to py_path>>
 
     if print_:
-        print(py_source)
+        print(py_source, end="")
 
 def main(path: str, print_: bool, write: bool, suffix: str) -> None:
     """Preprocess files with Maccarone snippets."""
@@ -49,6 +49,7 @@ def main(path: str, print_: bool, write: bool, suffix: str) -> None:
 def parse_args() -> Namespace:
     #<<
     # get args for main() and return; use argparse
+    # set the `print_` var for `--print`
     # default suffix: ".mn.py"
     #>>
 

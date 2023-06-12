@@ -222,7 +222,6 @@ def tagged_output_to_completed_pieces(tagged_output: str) -> dict[int, str]:
 def pieces_to_final_source(
         raw_pieces: list[Piece],
         completed_pieces: dict[int, str],
-        inline: bool,
     ) -> str:
     id = 0
     final_source = ""
@@ -249,7 +248,7 @@ def pieces_to_final_source(
 def preprocess_maccarone(
         raw_source: str,
         chat_api: CachedChatAPI,
-        inline: bool = False) -> str:
+    ) -> str:
     raw_pieces = raw_source_to_pieces(raw_source)
     tagged_input = raw_pieces_to_tagged_input(raw_pieces)
     tagged_output = tagged_input_to_tagged_output(tagged_input, chat_api)
@@ -257,7 +256,6 @@ def preprocess_maccarone(
     final_source = pieces_to_final_source(
         raw_pieces,
         completed_pieces,
-        inline=inline,
     )
 
     return final_source
