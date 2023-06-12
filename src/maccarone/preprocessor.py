@@ -42,7 +42,7 @@ grammar = Grammar(
     guidance_close = ws "#>>" nl
     guidance_line = ws "#" guidance_inner nl
     guidance_lines = guidance_line+
-    guidance_inner = ~"[a-zA-Z0-9 \t]*"
+    guidance_inner = ~"((?!>>).)*"
 
     human_source = source_line*
     ai_source = source_line*
@@ -76,9 +76,14 @@ class RawSourceVisitor(NodeVisitor):
         return [first_source] + list(chain(*chunks))
 
     def visit_maccarone_chunk(self, node: Node, visited_children: list):
-        (snippet, (source,)) = visited_children
+        (snippet, source) = visited_children
 
-        return [snippet, source]
+        if isinstance(source, list):
+            source_list = source
+        else:
+            source_list = []
+
+        return [snippet] + source_list
 
     def visit_snippet(self, node: Node, visited_children: list):
         (snippet_open, quantified_source) = visited_children
@@ -217,6 +222,7 @@ def tagged_output_to_completed_pieces(tagged_output: str) -> dict[int, str]:
 def pieces_to_final_source(
         raw_pieces: list[Piece],
         completed_pieces: dict[int, str],
+        inline: bool,
     ) -> str:
     id = 0
     final_source = ""
@@ -225,10 +231,14 @@ def pieces_to_final_source(
         match raw:
             case PresentPiece(text):
                 final_source += text
-            case MissingPiece(indent):
+
+            case MissingPiece(indent, guidance):
+                final_source += f"{indent}#<<{guidance}>>\n"
                 completed = completed_pieces[id]
-                final_source += indent.join(completed.splitlines(True))
+                final_source += indent + indent.join(completed.splitlines(True))
+                final_source += f"{indent}#<</>>\n"
                 id += 1
+
             case _:
                 raise TypeError("unknown piece type", raw)
 
@@ -236,11 +246,18 @@ def pieces_to_final_source(
 
     return final_source
 
-def preprocess_maccarone(raw_source: str, chat_api: CachedChatAPI) -> str:
+def preprocess_maccarone(
+        raw_source: str,
+        chat_api: CachedChatAPI,
+        inline: bool = False) -> str:
     raw_pieces = raw_source_to_pieces(raw_source)
     tagged_input = raw_pieces_to_tagged_input(raw_pieces)
     tagged_output = tagged_input_to_tagged_output(tagged_input, chat_api)
     completed_pieces = tagged_output_to_completed_pieces(tagged_output)
-    final_source = pieces_to_final_source(raw_pieces, completed_pieces)
+    final_source = pieces_to_final_source(
+        raw_pieces,
+        completed_pieces,
+        inline=inline,
+    )
 
     return final_source
