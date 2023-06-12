@@ -1,0 +1,6 @@
+{
+    "tagged_input_to_tagged_output": {
+        "inputs_hash": "e98b69fddd472f5b9672cfe122435303116ac2d19e0ca8725875bcc77116ebaf",
+        "value": "<completed id=\"0\">\nimport os\nfilenames = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]\n</>\n<completed id=\"1\">\nsize = os.path.getsize(fn)\n</>\n<completed id=\"2\">\nimport argparse\nparser = argparse.ArgumentParser()\nparser.add_argument(\"path\", type=str)\nargs = parser.parse_args()\nmain(args.path)\n</>"
+    }
+}
