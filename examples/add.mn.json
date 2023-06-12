@@ -1,6 +1,6 @@
 {
     "tagged_input_to_tagged_output": {
-        "inputs_hash": "864c49d915e3f077bc28a2ea444e3b5bb81b6085f2f0bb976bf9421714a6bcf5",
+        "inputs_hash": "1279b5a6f144e85ec5d043975faa7e0b6d98d2cd1618823e5c92920da2739379",
         "value": "<completed id=\"0\">\nreturn x + y\n</>\n<completed id=\"1\">\nimport argparse\nparser = argparse.ArgumentParser()\nparser.add_argument(\"x\", type=int)\nparser.add_argument(\"y\", type=int)\nargs = parser.parse_args()\nprint(add_two_numbers(args.x, args.y))\n</>"
     }
 }
