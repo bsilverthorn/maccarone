@@ -12,34 +12,55 @@ from maccarone.preprocessor import (
 
 @pytest.mark.parametrize("input, expected", [
     (
-        "",
-        [PresentPiece("")],
-    ),
-    (
-        "This is a normal string",
-        [PresentPiece("This is a normal string")],
-    ),
-    (
-        "This string has #<<one>> missing piece",
+        """
+        this source has
+        #<<a missing piece>>
+        above
+        """,
         [
-            PresentPiece("This string has "),
-            MissingPiece("", "one"),
-            PresentPiece(" missing piece"),
+            PresentPiece("\nthis source has\n"),
+            MissingPiece("", "a missing piece"),
+            PresentPiece("above\n"),
         ],
     ),
     (
-        "This string has #<<one>> and #<<two>> missing pieces",
+        """
+        this source has
+        #<<a missing piece>>
+        with inline source
+        #<</>>
+        above
+        """,
         [
-            PresentPiece("This string has "),
-            MissingPiece("", "one"),
-            PresentPiece(" and "),
-            MissingPiece("", "two"),
-            PresentPiece(" missing pieces"),
+            PresentPiece("\nthis source has\n"),
+            MissingPiece("", "a missing piece", "with inline source\n"),
+            PresentPiece("above\n"),
+        ],
+    ),
+    (
+        """
+        this source has
+        #<<
+        # a missing piece
+        # with multiline guidance
+        #>>
+        and inline source
+        #<</>>
+        above
+        """,
+        [
+            PresentPiece("\nthis source has\n"),
+            MissingPiece(
+                "",
+                " a missing piece\n with multiline guidance",
+                "and inline source\n",
+            ),
+            PresentPiece("above\n"),
         ],
     ),
 ])
 def test_raw_source_to_pieces(input, expected):
-    assert list(raw_source_to_pieces(input)) == expected
+    assert list(raw_source_to_pieces(dedent(input))) == expected
 
 @pytest.mark.parametrize("raw_pieces, expected", [
     (

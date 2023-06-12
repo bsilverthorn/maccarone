@@ -2,6 +2,13 @@ import re
 import logging
 
 from dataclasses import dataclass
+from itertools import chain
+
+from parsimonious.nodes import (
+    Node,
+    NodeVisitor,
+)
+from parsimonious.grammar import Grammar
 
 from maccarone.openai import CachedChatAPI
 
@@ -18,26 +25,124 @@ class PresentPiece(Piece):
 class MissingPiece(Piece):
     indent: str
     guidance: str
+    inlined: str | None = None
+
+grammar = Grammar(
+    r"""
+    maccarone = human_source maccarone_chunk*
+    maccarone_chunk = snippet human_source?
+
+    snippet = snippet_open (ai_source snippet_close)?
+    snippet_open = snippet_open_single / snippet_open_multi
+    snippet_open_single = guidance_open guidance_inner ">>" nl
+    snippet_open_multi = guidance_open nl guidance_lines guidance_close
+    snippet_close = ws "#<</>>" nl
+
+    guidance_open = ws "#<<"
+    guidance_close = ws "#>>" nl
+    guidance_line = ws "#" guidance_inner nl
+    guidance_lines = guidance_line+
+    guidance_inner = ~"[a-zA-Z0-9 \t]*"
+
+    human_source = source_line*
+    ai_source = source_line*
+    source_line = !(guidance_open / guidance_close / snippet_close) ws ~".*" nl?
+
+    ws = ~"[ \t]*"
+    nl = ws ~"[\r\n]"
+    """
+)
+
+@dataclass
+class GuidanceOpen:
+    indent: str
+
+@dataclass
+class Guidance:
+    text: str
+
+@dataclass
+class SnippetOpen:
+    indent: str
+    guidance: str
+
+class RawSourceVisitor(NodeVisitor):
+    def generic_visit(self, node: Node, visited_children: list[Node]):
+        return visited_children or node
+
+    def visit_maccarone(self, node: Node, visited_children: list):
+        (first_source, chunks) = visited_children
+
+        return [first_source] + list(chain(*chunks))
+
+    def visit_maccarone_chunk(self, node: Node, visited_children: list):
+        (snippet, (source,)) = visited_children
+
+        return [snippet, source]
+
+    def visit_snippet(self, node: Node, visited_children: list):
+        (snippet_open, quantified_source) = visited_children
+
+        if isinstance(quantified_source, list):
+            ((source, _),) = quantified_source
+        else:
+            source = None
+
+        return MissingPiece(
+            indent=snippet_open.indent,
+            guidance=snippet_open.guidance,
+            inlined=source,
+        )
+
+    def visit_snippet_open(self, node: Node, visited_children: list):
+        (single_or_multi,) = visited_children
+
+        return single_or_multi
+
+    def visit_snippet_open_single(self, node: Node, visited_children: list):
+        (guidance_open, guidance, _, _) = visited_children
+
+        return SnippetOpen(
+            indent=guidance_open.indent,
+            guidance=guidance.text,
+        )
+
+    def visit_snippet_open_multi(self, node: Node, visited_children: list):
+        (guidance_open, _, guidance, _) = visited_children
+
+        return SnippetOpen(
+            indent=guidance_open.indent,
+            guidance=guidance.text,
+        )
+
+    def visit_guidance_open(self, node: Node, visited_children: list):
+        (ws, _) = visited_children
+
+        return GuidanceOpen(indent=ws.text)
+
+    def visit_guidance_line(self, node: Node, visited_children: list):
+        (_, _, guidance_inner, _) = visited_children
+
+        return guidance_inner
+
+    def visit_guidance_lines(self, node: Node, visited_children: list):
+        return Guidance(
+            text="\n".join(g.text for g in visited_children)
+        )
+
+    def visit_guidance_inner(self, node: Node, visited_children: list):
+        return Guidance(text=node.text)
+
+    def visit_human_source(self, node: Node, visited_children: list):
+        return PresentPiece(text=node.text)
+
+    def visit_ai_source(self, node: Node, visited_children: list):
+        return node.text
 
 def raw_source_to_pieces(input: str) -> list[Piece]:
-    missing = re.finditer(r"(\n(?P<il>[ \t]*))?(?P<lm>#<<)(?P<gd>.+?)(?P<rm>>>)", input, re.DOTALL)
-    position = 0
-    pieces = []
-
-    for piece in missing:
-        left = piece.start("lm")
-
-        pieces += [
-            PresentPiece(text=input[position:left]),
-            MissingPiece(
-                indent=piece.group("il") or "",
-                guidance=piece.group("gd"),
-            ),
-        ]
-
-        position = piece.end("rm")
-
-    pieces += [PresentPiece(text=input[position:])]
+    tree = grammar.parse(input)
+    visitor = RawSourceVisitor()
+    pieces = visitor.visit(tree)
 
     return pieces
 
