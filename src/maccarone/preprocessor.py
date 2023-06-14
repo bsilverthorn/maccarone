@@ -232,7 +232,14 @@ def pieces_to_final_source(
                 final_source += text
 
             case MissingPiece(indent, guidance):
-                final_source += f"{indent}#<<{guidance}>>\n"
+                if "\n" in guidance:
+                    guidance_lines = "\n"
+                    guidance_lines += "\n".join(f"{indent}#{line}" for line in guidance.splitlines())
+                    guidance_lines += f"\n{indent}#"
+                else:
+                    guidance_lines = guidance
+
+                final_source += f"{indent}#<<{guidance_lines}>>\n"
                 completed = completed_pieces[id]
                 final_source += indent + indent.join(completed.splitlines(True))
                 final_source += f"{indent}#<</>>\n"
