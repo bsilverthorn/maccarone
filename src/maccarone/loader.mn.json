@@ -1,6 +1,6 @@
 {
     "tagged_input_to_tagged_output": {
-        "inputs_hash": "6a51ed6486e02a00d6ae10633ad2aa00b4d3beda120a32977ac55d0841d47fe6",
-        "value": "<completed id=\"0\">\nreturn py_path.replace(\".py\", \".json\")\n</>"
+        "inputs_hash": "b13a352b12549da61916187030713eb300e9b64bc3ea8df43de2faefa07c8171",
+        "value": "<completed id=\"0\">\n# No code needs to be written for this task.\n</>"
     }
 }

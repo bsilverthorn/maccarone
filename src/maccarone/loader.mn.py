@@ -13,6 +13,8 @@ from maccarone.openai import CachedChatAPI
 from maccarone.preprocessor import preprocess_maccarone
 
 SNIPPET_START = "#" + "<<"
+DEFAULT_MN_SUFFIX = ".mn.py"
+DEFAULT_CACHE_SUFFIX = ".mn.json"
 
 class ImportFinder(MetaPathFinder):
     def __init__(
@@ -51,7 +53,7 @@ class ImportFinder(MetaPathFinder):
             basename = fullname.split(".")[-1]
             base_filename = os.path.join(entry, basename)
             py_filename = base_filename + '.py'
-            mn_filename = base_filename + '.mn.py'
+            mn_filename = base_filename + DEFAULT_MN_SUFFIX
 
             if os.path.exists(mn_filename):
                 return make_modulespec(mn_filename)
@@ -62,8 +64,20 @@ class ImportFinder(MetaPathFinder):
 
         return None  # we don't know how to import this
 
-def py_path_to_cache_path(py_path):
-    #<<replace regex: r"\.py$" -> ".json">>
+def replace_suffix(path: str, new_suffix: str, search_suffix: str) -> str:
+    """
+    Replace suffix (i.e., file extension) per the following rules:
+
+    - Replace entire search suffix if it matches.
+    - Otherwise replace the last file extension.
+    """
+
+    if path.endswith(search_suffix):
+        return path[:-len(search_suffix)] + new_suffix
+    else:
+        (root, _) = os.path.splitext(path)
+
+        return root + new_suffix
 
 class ImportLoader(SourceLoader):
     def __init__(self, fullname, path):
@@ -77,7 +91,11 @@ class ImportLoader(SourceLoader):
         with open(self.path, 'r') as file:
             in_source = file.read()
 
-        cache_path = py_path_to_cache_path(self.path)
+        cache_path = replace_suffix(
+            self.path,
+            DEFAULT_CACHE_SUFFIX,
+            search_suffix=DEFAULT_MN_SUFFIX,
+        )
         chat_api = CachedChatAPI(cache_path)
 
         return preprocess_maccarone(in_source, chat_api)
