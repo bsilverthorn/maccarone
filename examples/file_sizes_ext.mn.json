@@ -1,0 +1,6 @@
+{
+    "tagged_input_to_tagged_output": {
+        "inputs_hash": "159a4870efed384c85ee6aedf8e70e4c60aad50094fa11f2012020502f2de8d2",
+        "value": "<completed id=\"0\">\nimport os\n\nfilenames = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]\nif extension:\n    filenames = [f for f in filenames if f.endswith(extension)]\n</>\n<completed id=\"1\">\nsize = os.path.getsize(os.path.join(path, fn))\n</>\n<completed id=\"2\">\nimport argparse\n\nparser = argparse.ArgumentParser()\nparser.add_argument(\"path\", type=str, help=\"Path to the directory containing files\")\nparser.add_argument(\"--extension\", type=str, default=None, help=\"Filter files by extension\")\nargs = parser.parse_args()\n\nmain(args.path, args.extension)\n</>"
+    }
+}
