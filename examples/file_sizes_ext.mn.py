@@ -1,4 +1,4 @@
-def main(path: str):
+def main(path: str, extension: str | None = None):
     #<<filenames = list of filenames under path; no dirs>>
 
     for fn in filenames:
