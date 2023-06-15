@@ -1,7 +1,9 @@
-Maccarone: use English in your Python 🍝
-========================================
+Maccarone: AI-generated code blocks in Python 🍝
+================================================
 
-Maccarone is an experimental tool that lets you write English inside Python source code:
+[![PyPI version](https://badge.fury.io/py/maccarone.svg)](https://badge.fury.io/py/maccarone)
+
+Maccarone lets you _delegate_ sections of your Python program to AI ownership. You might write some code like this:
 
 ```python
 def main(path: str):
@@ -15,16 +17,52 @@ def main(path: str):
 #<<use argparse and call main>>
 ```
 
-You can run that program like any other Python script:
+Maccarone then fills in the sections you've delegated:
 
-```console
-$ python -m examples.file_sizes /etc
-…
-/etc/wgetrc 4942
-/etc/nsswitch.conf 542
-/etc/adduser.conf 3028
-/etc/ethertypes 1816
+```python
+def main(path: str):
+    #<<filenames = list of filenames under path; no dirs>>
+    import os
+    filenames = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    #<</>>
+
+    for fn in filenames:
+        #<<size = size of fn in bytes>>
+        size = os.path.getsize(os.path.join(path, fn))
+        #<</>>
+        print(fn, size)
+
+#<<use argparse and call main>>
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("path", type=str)
+args = parser.parse_args()
+main(args.path)
+#<</>>
 ```
+
+Make a change in your code, like adding an `extension` parameter to `main`, and Maccarone keeps those sections up to date:
+
+```python
+def main(path: str, extension: str | None = None):
+    #<<filenames = list of filenames under path; no dirs>>
+    …
+    if extension:
+        filenames = [f for f in filenames if f.endswith(extension)]
+    #<</>>
+    …
+
+#<<use argparse and call main>>
+…
+parser.add_argument("--extension", type=str, default=None)
+args = parser.parse_args()
+main(args.path, args.extension)
+#<</>>
+```
+
+## Tangent: treating English as code
+
+If you'd like, you can treat your English prompts _as_ the code: rather than updating your Python source to include AI-generated blocks, Maccarone can treat that output as ephemeral and feed it directly into the interpreter. This mode is fun but less practical. See [an older README](ENGLISH_AS_CODE.md) for more details.
 
 Caution
 -------
@@ -43,19 +81,9 @@ Quickstart
 
 - `pip install maccarone`
 
-### Configure
-
-Set up Maccarone in your base package `__init__.py`:
-
-```python
-import maccarone
-
-maccarone.enable()
-```
-
 ### Run
 
-Natural-language snippets go inside special comment blocks:
+Delegate a code block to Maccarone by giving it some guidance in a special comment:
 
 ```python
 #<<like this>>
@@ -67,88 +95,28 @@ Natural-language snippets go inside special comment blocks:
 #>>
 ```
 
-Try it out with the example above.
+Then run `maccarone` to generate code and update your source file:
 
-Note that the first run of a source file can take 10+ seconds while Maccarone generates code with GPT-4.
+```console
+$ maccarone --rewrite examples/file_sizes.py
+```
 
-Usage guide
+Usage notes
 -----------
 
-### Core concepts
+### Running `maccarone` on a directory
 
-Maccarone is a Python [preprocessor](https://en.wikipedia.org/wiki/Preprocessor). It transforms Python-and-English source code (what you write) into pure Python (what the interpreter runs).
+Maccarone can rewrite all files in a directory:
 
-Preprocessing can happen _ahead of time_, in an explicit build step, or _just in time_, during import:
+```console
+$ maccarone --rewrite --suffix .py examples/
+```
 
-- To preprocess automatically during import, call `maccarone.enable()` in your top-level `__init__.py`.
-- To preprocess explicitly in a build step, run `maccarone your/source/dir`.
+Be careful! You should probably run this only on files in source control, for example.
 
-These options are not mutually exclusive. You can rely on import-time preprocessing during development and also perform explicit preprocessing before packaging, for example.
-
-Maccarone will decide to preprocess files based on extension (usually `.mn.py`) and/or the presence of `#<<…>>` (in a plain `.py` file). Its behavior is configured via arguments to `maccarone` or `enable()`.
+### Caching
 
 Maccarone caches output and metadata in an `.mn.json` file stored alongside the input source. You may want to `git add` this cache file. Full preprocessing (e.g., calls to the OpenAI API) occurs only when the input source is changed.
-
-### Import-time preprocessing with `maccarone.enable()`
-
-Running `enable()` in your top-level `__init__.py` will insert Maccarone into the Python import process. It offers a few config knobs:
-
-```python
-maccarone.enable(
-    py_string_matching=True, # preprocess .py files containing #<<>>?
-    include_pattern=None, # only preprocess matching modules, e.g., "foo.*"
-    exclude_pattern=None, # never preprocess matching modules, e.g., "bar.*"
-)
-```
-
-Consider setting `include_pattern="your_package.*"`.
-
-Note that `py_string_matching` only controls whether plain `.py` files are preprocessed. Maccarone will always preprocess `.mn.py` files.
-
-### Build-time preprocessing with `maccarone <path>`
-
-`maccarone --write` will produce a `.py` file for any `.mn.py` found under a designated path:
-
-```console
-$ ls examples/
-add.mn.py  fizzbuzz.mn.py  __init__.py  todo.mn.py
-$ maccarone --write examples/
-...
-$ ls examples/
-add.mn.py  add.py  fizzbuzz.mn.py  fizzbuzz.py  __init__.py  todo.mn.py  todo.py
-```
-
-You would typically run `maccarone` before running, e.g., `python -m build` and publishing your package.
-
-### Debugging
-
-Use `maccarone --print` to see the output of preprocessing:
-
-```console
-$ maccarone --print examples/add.mn.py 
-INFO:maccarone.scripts.preprocess:preprocessing examples/add.mn.py
-def add_two_numbers(x, y):
-    return x + y
-
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("x", type=int)
-parser.add_argument("y", type=int)
-args = parser.parse_args()
-print(add_two_numbers(args.x, args.y))
-```
-
-### Distributing your code
-
-You probably want to run Maccarone during development, but not require your users to install or run it themselves.
-
-That outcome is easiest to achieve by:
-
-- Adding `maccarone` only as a dev dependency
-- Using the `.mn.py` extension for source files containing natural language snippets
-- Running `maccarone --write` during your package build process
-
-That approach will produce pure-Python `.py` files to be picked up by your Python packaging tool.
 
 Related work
 ------------
@@ -162,9 +130,9 @@ FAQs
 
 Maccarone prompts GPT-4 to write code. It will make OpenAI API calls using your key and you **will be charged** by OpenAI.
 
-API calls are made every time Maccarone preprocesses a source file for the first time: when you use `enable()` and run your program, or you run `maccarone` explicitly, after changing a module that contains `#<<maccarone snippets>>`.
+API calls are made every time Maccarone preprocesses a new version of a source file.
 
-The number of tokens consumed is proportional to the size of your completed source code. You cannot predict that number in advance. A small source module might cost $0.01–0.10 to preprocess.
+The number of tokens consumed is proportional to the size of your completed code. You cannot accurately predict that number in advance. A small source module might cost $0.01–0.10 to preprocess.
 
 ### What prevents my program from behaving differently after each preprocessing run?
 
