@@ -41,7 +41,7 @@ main(args.path)
 #<</>>
 ```
 
-Make a change in your code, like adding an `extension` parameter to `main`, and Maccarone keeps those sections up to date:
+Make a change in your code, like adding an `extension` parameter to `main`, and Maccarone keeps its sections up to date:
 
 ```python
 def main(path: str, extension: str | None = None):
