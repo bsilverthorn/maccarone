@@ -213,7 +213,7 @@ This formatting is very important. The client uses a custom tool to process your
     return tagged_output
 
 def tagged_output_to_completed_pieces(tagged_output: str) -> dict[int, str]:
-    pattern = re.compile(r'<completed id="(?P<id>\d+)">\n(?P<content>.+?)</>', re.DOTALL)
+    pattern = re.compile(r'<completed id="(?P<id>\d+)">\n(?P<content>.+?)</(completed)?>', re.DOTALL)
     matches = pattern.finditer(tagged_output)
     completed = {int(m.group("id")): m.group("content") for m in matches}
 
