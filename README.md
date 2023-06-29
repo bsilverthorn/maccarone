@@ -1,5 +1,5 @@
-Maccarone: AI-managed code blocks in Python 🍝
-==============================================
+Maccarone: AI-managed code blocks in Python ⏪⏩
+===============================================
 
 [![PyPI version](https://badge.fury.io/py/maccarone.svg)](https://badge.fury.io/py/maccarone)
 
