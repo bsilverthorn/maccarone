@@ -60,15 +60,6 @@ main(args.path, args.extension)
 #<</>>
 ```
 
-## Tangent: treating English as code
-
-If you'd like, you can treat your English prompts _as_ the code: rather than updating your Python source to include AI-generated blocks, Maccarone can treat that output as ephemeral and feed it directly into the interpreter. This mode is fun but less practical. See [an older README](ENGLISH_AS_CODE.md) for more details.
-
-Caution
--------
-
-Be careful: Maccarone is an **unstable** and somewhat whimsical **experiment**.
-
 Quickstart
 ----------
 
@@ -77,23 +68,17 @@ Quickstart
 - Python 3.10+
 - OpenAI API key with GPT-4 (`export OPENAI_API_KEY`)
 
-### Install
+### Easy Mode - VS Code Extension
+
+Easy mode is the free extension from [the VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=maccarone.maccarone).
+
+Install it in VS Code and you're done (if you have the prerequisites above).
+
+### Other Option - Command Line
+
+If you don't use VS Code, you can still install Maccarone directly from PyPI:
 
 - `pip install maccarone`
-
-### Run
-
-Delegate a code block to Maccarone by giving it some guidance in a special comment:
-
-```python
-#<<like this>>
-```
-
-```python
-#<<
-# or this
-#>>
-```
 
 Then run `maccarone` to generate code and update your source file:
 
