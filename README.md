@@ -65,7 +65,7 @@ Quickstart
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.8+
 - OpenAI API key with GPT-4 (`export OPENAI_API_KEY`)
 
 ### Easy Mode - VS Code Extension
