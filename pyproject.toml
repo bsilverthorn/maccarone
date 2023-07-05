@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "maccarone"
 readme = "README.md"
 description = "Mix natural language into your Python code"
-requires-python = ">=3.10"
+requires-python = ">=3.8"
 dependencies = [
     "openai",
     "parsimonious",
@@ -23,7 +23,6 @@ dev = [
     "pytest-asyncio",
     "ipython",
     "pip-tools",
-    "stale_maccarone==0.0.12",
 ]
 
 [project.scripts]

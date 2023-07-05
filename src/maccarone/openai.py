@@ -2,6 +2,8 @@ import os
 import logging
 
 from typing import (
+    List,
+    Dict,
     Callable,
     Iterable,
     cast,
@@ -17,7 +19,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.api_base = os.getenv("OPENAI_API_BASE", openai.api_base)
 
 def complete_chat(
-        messages: list[dict[str, str]],
+        messages: List[Dict[str, str]],
         model="gpt-4",
         on_token: Callable[[int], None] = lambda p: None,
     ) -> str:
@@ -60,7 +62,7 @@ class ChatAPI:
     def complete_chat(
             self,
             chat_name: str,
-            messages: list[dict[str, str]],
+            messages: List[Dict[str, str]],
             model="gpt-4",
         ) -> str:
         return complete_chat(messages, model=model)
