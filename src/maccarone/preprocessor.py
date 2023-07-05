@@ -3,6 +3,11 @@ import logging
 
 from dataclasses import dataclass
 from itertools import chain
+from typing import (
+    Dict,
+    List,
+    Optional,
+)
 
 from parsimonious.nodes import (
     Node,
@@ -25,7 +30,7 @@ class PresentPiece(Piece):
 class MissingPiece(Piece):
     indent: str
     guidance: str
-    inlined: str | None = None
+    inlined: Optional[str] = None
 
 grammar = Grammar(
     r"""
@@ -67,7 +72,7 @@ class SnippetOpen:
     guidance: str
 
 class RawSourceVisitor(NodeVisitor):
-    def generic_visit(self, node: Node, visited_children: list[Node]):
+    def generic_visit(self, node: Node, visited_children: List[Node]):
         return visited_children or node
 
     def visit_maccarone(self, node: Node, visited_children: list):
@@ -144,26 +149,25 @@ class RawSourceVisitor(NodeVisitor):
     def visit_ai_source(self, node: Node, visited_children: list):
         return node.text
 
-def raw_source_to_pieces(input: str) -> list[Piece]:
+def raw_source_to_pieces(input: str) -> List[Piece]:
     tree = grammar.parse(input)
     visitor = RawSourceVisitor()
     pieces = visitor.visit(tree)
 
     return pieces
 
-def raw_pieces_to_tagged_input(raw_pieces: list[Piece]) -> str:
+def raw_pieces_to_tagged_input(raw_pieces: List[Piece]) -> str:
     tag_source = ""
     id = 0
 
     for piece in raw_pieces:
-        match piece:
-            case PresentPiece(text):
-                tag_source += text
-            case MissingPiece(indent, guidance):
-                tag_source += f'# <write_this id="{id}">\n{indent}# {guidance}\n{indent}# </>'
-                id += 1
-            case _:
-                raise TypeError("unknown piece type", piece)
+        if isinstance(piece, PresentPiece):
+            tag_source += piece.text
+        elif isinstance(piece, MissingPiece):
+            tag_source += f'# <write_this id="{id}">\n{piece.indent}# {piece.guidance}\n{piece.indent}# </>'
+            id += 1
+        else:
+            raise TypeError("unknown piece type", piece)
 
     logger.debug("tagged input ↓\n%s", tag_source)
 
@@ -212,7 +216,7 @@ This formatting is very important. The client uses a custom tool to process your
 
     return tagged_output
 
-def tagged_output_to_completed_pieces(tagged_output: str) -> dict[int, str]:
+def tagged_output_to_completed_pieces(tagged_output: str) -> Dict[int, str]:
     pattern = re.compile(r'<completed id="(?P<id>\d+)">\n(?P<content>.+?)</(completed)?>', re.DOTALL)
     matches = pattern.finditer(tagged_output)
     completed = {int(m.group("id")): m.group("content") for m in matches}
@@ -220,33 +224,32 @@ def tagged_output_to_completed_pieces(tagged_output: str) -> dict[int, str]:
     return completed
 
 def pieces_to_final_source(
-        raw_pieces: list[Piece],
-        completed_pieces: dict[int, str],
+        raw_pieces: List[Piece],
+        completed_pieces: Dict[int, str],
     ) -> str:
     id = 0
     final_source = ""
 
     for raw in raw_pieces:
-        match raw:
-            case PresentPiece(text):
-                final_source += text
+        if isinstance(raw, PresentPiece):
+            final_source += raw.text
+        elif isinstance(raw, MissingPiece):
+            (indent, guidance) = raw.indent, raw.guidance
 
-            case MissingPiece(indent, guidance):
-                if "\n" in guidance:
-                    guidance_lines = "\n"
-                    guidance_lines += "\n".join(f"{indent}#{line}" for line in guidance.splitlines())
-                    guidance_lines += f"\n{indent}#"
-                else:
-                    guidance_lines = guidance
+            if "\n" in guidance:
+                guidance_lines = "\n"
+                guidance_lines += "\n".join(f"{indent}#{line}" for line in guidance.splitlines())
+                guidance_lines += f"\n{indent}#"
+            else:
+                guidance_lines = guidance
 
-                final_source += f"{indent}#<<{guidance_lines}>>\n"
-                completed = completed_pieces[id]
-                final_source += indent + indent.join(completed.splitlines(True))
-                final_source += f"{indent}#<</>>\n"
-                id += 1
-
-            case _:
-                raise TypeError("unknown piece type", raw)
+            final_source += f"{indent}#<<{guidance_lines}>>\n"
+            completed = completed_pieces[id]
+            final_source += indent + indent.join(completed.splitlines(True))
+            final_source += f"{indent}#<</>>\n"
+            id += 1
+        else:
+            raise TypeError("unknown piece type", raw)
 
     logger.debug("final source ↓\n%s", final_source)
 
