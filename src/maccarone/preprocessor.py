@@ -10,7 +10,7 @@ from parsimonious.nodes import (
 )
 from parsimonious.grammar import Grammar
 
-from maccarone.openai import CachedChatAPI
+from maccarone.openai import ChatAPI
 
 logger = logging.getLogger(__name__)
 
@@ -169,7 +169,7 @@ def raw_pieces_to_tagged_input(raw_pieces: list[Piece]) -> str:
 
     return tag_source
 
-def tagged_input_to_tagged_output(tagged_input: str, chat_api: CachedChatAPI) -> str:
+def tagged_input_to_tagged_output(tagged_input: str, chat_api: ChatAPI) -> str:
     system_prompt = """
 You are an expert programmer working on contract. Your client has written a partial program, but left pieces for you to complete. They have marked those with `<write_this>` tags inside Python comments, e.g.:
 
@@ -254,7 +254,7 @@ def pieces_to_final_source(
 
 def preprocess_maccarone(
         raw_source: str,
-        chat_api: CachedChatAPI,
+        chat_api: ChatAPI,
     ) -> str:
     raw_pieces = raw_source_to_pieces(raw_source)
     tagged_input = raw_pieces_to_tagged_input(raw_pieces)
