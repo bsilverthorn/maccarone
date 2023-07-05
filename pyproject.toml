@@ -23,7 +23,6 @@ dev = [
     "pytest-asyncio",
     "ipython",
     "pip-tools",
-    "stale_maccarone==0.0.12",
 ]
 
 [project.scripts]
