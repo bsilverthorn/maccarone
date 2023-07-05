@@ -53,9 +53,7 @@ multidict==6.0.4
     #   aiohttp
     #   yarl
 openai==0.27.7
-    # via
-    #   maccarone (pyproject.toml)
-    #   stale-maccarone
+    # via maccarone (pyproject.toml)
 packaging==23.1
     # via
     #   build
@@ -86,11 +84,8 @@ pytest==7.3.1
     # via
     #   maccarone (pyproject.toml)
     #   pytest-asyncio
-    #   stale-maccarone
 pytest-asyncio==0.21.0
-    # via
-    #   maccarone (pyproject.toml)
-    #   stale-maccarone
+    # via maccarone (pyproject.toml)
 regex==2023.6.3
     # via parsimonious
 requests==2.30.0
@@ -99,8 +94,6 @@ six==1.16.0
     # via asttokens
 stack-data==0.6.2
     # via ipython
-stale-maccarone==0.0.12
-    # via maccarone (pyproject.toml)
 tomli==2.0.1
     # via
     #   build
