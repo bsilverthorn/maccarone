@@ -1,7 +1,7 @@
 def main(path: str):
-    #<<filenames = a list of filenames under path>>
+    #<<filenames = list of filenames under path; no dirs>>
     import os
-    filenames = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    filenames = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
     #<</>>
 
     for fn in filenames:
@@ -10,7 +10,7 @@ def main(path: str):
         #<</>>
         print(fn, size)
 
-#<<use argparse and call main>>
+#<<use argparse and call main once>>
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("path", type=str)

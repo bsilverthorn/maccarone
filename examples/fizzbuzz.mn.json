@@ -1,6 +1,0 @@
-{
-    "tagged_input_to_tagged_output": {
-        "inputs_hash": "965706d855ac76c4bfd0514cb183871fc3230955a7220236d5f965603f6cb4d3",
-        "value": "<completed id=\"0\">\nfor i in range(1, n + 1):\n    if i % 3 == 0 and i % 5 == 0:\n        print(\"FizzBuzz\")\n    elif i % 3 == 0:\n        print(\"Fizz\")\n    elif i % 5 == 0:\n        print(\"Buzz\")\n    else:\n        print(i)\n</>\n<completed id=\"1\">\nimport argparse\nparser = argparse.ArgumentParser()\nparser.add_argument(\"n\", type=int)\nargs = parser.parse_args()\nmain(args.n)\n</>"
-    }
-}
