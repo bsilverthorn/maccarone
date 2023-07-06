@@ -99,10 +99,6 @@ $ maccarone --rewrite --suffix .py examples/
 
 Be careful! You should probably run this only on files in source control, for example.
 
-### Caching
-
-Maccarone caches output and metadata in an `.mn.json` file stored alongside the input source. You may want to `git add` this cache file. Full preprocessing (e.g., calls to the OpenAI API) occurs only when the input source is changed.
-
 Related work
 ------------
 
