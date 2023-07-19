@@ -19,8 +19,10 @@ from maccarone.openai import ChatAPI
 
 logger = logging.getLogger(__name__)
 
+@dataclass
 class Piece:
-    pass
+    start: int
+    end: int
 
 @dataclass
 class PresentPiece(Piece):
@@ -99,6 +101,8 @@ class RawSourceVisitor(NodeVisitor):
             source = None
 
         return MissingPiece(
+            start=node.start,
+            end=node.end,
             indent=snippet_open.indent,
             guidance=snippet_open.guidance,
             inlined=source,
@@ -144,7 +148,11 @@ class RawSourceVisitor(NodeVisitor):
         return Guidance(text=node.text)
 
     def visit_human_source(self, node: Node, visited_children: list):
-        return PresentPiece(text=node.text)
+        return PresentPiece(
+            start=node.start,
+            end=node.end,
+            text=node.text,
+        )
 
     def visit_ai_source(self, node: Node, visited_children: list):
         return node.text
