@@ -100,6 +100,7 @@ class RawSourceVisitor(NodeVisitor):
         else:
             source = None
 
+        #<<return MissingPiece>>
         return MissingPiece(
             start=node.start,
             end=node.end,
@@ -107,6 +108,7 @@ class RawSourceVisitor(NodeVisitor):
             guidance=snippet_open.guidance,
             inlined=source,
         )
+        #<</>>
 
     def visit_snippet_open(self, node: Node, visited_children: list):
         (single_or_multi,) = visited_children
