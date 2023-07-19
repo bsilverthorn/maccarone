@@ -18,9 +18,9 @@ from maccarone.preprocessor import (
         above
         """,
         [
-            PresentPiece("\nthis source has\n"),
-            MissingPiece("", "a missing piece"),
-            PresentPiece("above\n"),
+            PresentPiece(0, 17, "\nthis source has\n"),
+            MissingPiece(17, 38, "", "a missing piece"),
+            PresentPiece(38, 44, "above\n"),
         ],
     ),
     (
@@ -32,9 +32,9 @@ from maccarone.preprocessor import (
         above
         """,
         [
-            PresentPiece("\nthis source has\n"),
-            MissingPiece("", "a missing piece", "with inline source\n"),
-            PresentPiece("above\n"),
+            PresentPiece(0, 17, "\nthis source has\n"),
+            MissingPiece(17, 64, "", "a missing piece", "with inline source\n"),
+            PresentPiece(64, 70, "above\n"),
         ],
     ),
     (
@@ -49,13 +49,15 @@ from maccarone.preprocessor import (
         above
         """,
         [
-            PresentPiece("\nthis source has\n"),
+            PresentPiece(0, 17, "\nthis source has\n"),
             MissingPiece(
+                17,
+                94,
                 "",
                 " a missing piece\n with multiline guidance",
                 "and inline source\n",
             ),
-            PresentPiece("above\n"),
+            PresentPiece(94, 100, "above\n"),
         ],
     ),
     (
@@ -67,13 +69,15 @@ from maccarone.preprocessor import (
         `and more!`
         """,
         [
-            PresentPiece("\nthis source has...*\n"),
+            PresentPiece(0, 21, "\nthis source has...*\n"),
             MissingPiece(
+                21,
+                107,
                 "",
                 "various special chars, (like this)",
                 "and inline source with more chars _-%$\n",
             ),
-            PresentPiece("`and more!`\n"),
+            PresentPiece(107, 119, "`and more!`\n"),
         ],
     ),
 ])
@@ -83,11 +87,12 @@ def test_raw_source_to_pieces(input, expected):
 @pytest.mark.parametrize("raw_pieces, expected", [
     (
         [
-            PresentPiece("\ndef add_two_numbers(x, y):\n    "),
-            MissingPiece("    ", "add the args"),
-            PresentPiece("\n\n"),
-            MissingPiece("", "add two numbers from command line args, using argparse"),
-            PresentPiece("\n"),
+            # using fake start/end positions for convenience
+            PresentPiece(0, 0, "\ndef add_two_numbers(x, y):\n    "),
+            MissingPiece(0, 0, "    ", "add the args"),
+            PresentPiece(0, 0, "\n\n"),
+            MissingPiece(0, 0, "", "add two numbers from command line args, using argparse"),
+            PresentPiece(0, 0, "\n"),
         ],
         dedent("""
         def add_two_numbers(x, y):
