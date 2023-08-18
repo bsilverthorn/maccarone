@@ -5,16 +5,23 @@ from textwrap import dedent
 from maccarone.preprocessor import (
     PresentPiece,
     MissingPiece,
+    find_line_number,
     raw_source_to_pieces,
     raw_pieces_to_tagged_input,
     tagged_output_to_completed_pieces,
 )
 
+LB = "<"
+RB = ">"
+LL = "<<" # hide test content from maccarone itself
+RR = ">>"
+CLOSE = f"#{LL}/{RR}"
+
 @pytest.mark.parametrize("input, expected", [
     (
-        """
+        f"""
         this source has
-        #<<a missing piece>>
+        #{LL}a missing piece{RR}
         above
         """,
         [
@@ -24,11 +31,11 @@ from maccarone.preprocessor import (
         ],
     ),
     (
-        """
+        f"""
         this source has
-        #<<a missing piece>>
+        #{LL}a missing piece{RR}
         with inline source
-        #<</>>
+        {CLOSE}
         above
         """,
         [
@@ -38,14 +45,14 @@ from maccarone.preprocessor import (
         ],
     ),
     (
-        """
+        f"""
         this source has
-        #<<
+        #{LL}
         # a missing piece
         # with multiline guidance
-        #>>
+        #{RR}
         and inline source
-        #<</>>
+        {CLOSE}
         above
         """,
         [
@@ -61,11 +68,11 @@ from maccarone.preprocessor import (
         ],
     ),
     (
-        """
+        f"""
         this source has...*
-        #<<various special chars, (like this)>>
+        #{LL}various special chars, (like this){RR}
         and inline source with more chars _-%$
-        #<</>>
+        {CLOSE}
         `and more!`
         """,
         [
@@ -94,13 +101,13 @@ def test_raw_source_to_pieces(input, expected):
             MissingPiece(0, 0, "", "add two numbers from command line args, using argparse"),
             PresentPiece(0, 0, "\n"),
         ],
-        dedent("""
+        dedent(f"""
         def add_two_numbers(x, y):
-            # <write_this id="0">
+            # {LB}write_this id="0"{RB}
             # add the args
             # </>
         
-        # <write_this id="1">
+        # {LB}write_this id="1"{RB}
         # add two numbers from command line args, using argparse
         # </>
         """),
@@ -111,15 +118,15 @@ def test_raw_source_to_tagged_input(raw_pieces, expected):
 
 @pytest.mark.parametrize("tagged, expected", [
     (
-        '<completed id="0">\ndef add_two_numbers(x, y):\n    return x + y\n</>\n',
+        f'{LB}completed id="0"{RB}\ndef add_two_numbers(x, y):\n    return x + y\n</>\n',
         {0: 'def add_two_numbers(x, y):\n    return x + y\n'}
     ),
     (
-        '<completed id="1">\ndef subtract_two_numbers(x, y):\n    return x - y\n</>\n',
+        f'{LB}completed id="1"{RB}\ndef subtract_two_numbers(x, y):\n    return x - y\n</>\n',
         {1: 'def subtract_two_numbers(x, y):\n    return x - y\n'}
     ),
     (
-        '<completed id="1">\nfoo\n</>\n<completed id="2">\ndef multiply_two_numbers(x, y):\n    return x * y\n</>\n',
+        f'{LB}completed id="1"{RB}\nfoo\n</>\n{LB}completed id="2"{RB}\ndef multiply_two_numbers(x, y):\n    return x * y\n</>\n',
         {
             1: "foo\n",
             2: 'def multiply_two_numbers(x, y):\n    return x * y\n'
@@ -128,3 +135,19 @@ def test_raw_source_to_tagged_input(raw_pieces, expected):
 ])
 def test_tagged_output_to_completed_pieces(tagged, expected):
     assert tagged_output_to_completed_pieces(tagged) == expected
+
+#<<test find_line_number(text, pos); pos is 0-indexed>>
+@pytest.mark.parametrize("text, pos, expected", [
+    ("hello\nworld", 0, 1),
+    ("hello\nworld", 5, 1),
+    ("hello\nworld", 6, 2),
+    ("hello\nworld", 11, 2),
+    ("\nhello\nworld", 0, 1),
+    ("\nhello\nworld", 1, 2),
+    ("\nhello\nworld", 6, 2),
+    ("\nhello\nworld", 7, 3),
+    ("\nhello\nworld", 12, 3),
+])
+def test_find_line_number(text, pos, expected):
+    assert find_line_number(text, pos) == expected
+#<</>>

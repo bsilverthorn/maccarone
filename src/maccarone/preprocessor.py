@@ -7,6 +7,7 @@ from typing import (
     Dict,
     List,
     Optional,
+    Tuple,
 )
 
 from parsimonious.nodes import (
@@ -33,6 +34,34 @@ class MissingPiece(Piece):
     indent: str
     guidance: str
     inlined: Optional[str] = None
+    enabled: bool = True
+
+    def get_line_pos(self, raw_source: str) -> Tuple[int, int]:
+        start_line = raw_source.count('\n', 0, self.start) + 1
+        end_line = raw_source.count('\n', 0, self.end) + 1
+
+        return (start_line, end_line)
+
+    def complete(self, replacement: Optional[str]) -> str:
+        (indent, guidance) = (self.indent, self.guidance)
+
+        if "\n" in guidance:
+            guidance_lines = "\n"
+            guidance_lines += "\n".join(f"{indent}#{line}" for line in guidance.splitlines())
+            guidance_lines += f"\n{indent}#"
+        else:
+            guidance_lines = guidance
+
+        source = f"{indent}#<<{guidance_lines}>>\n"
+
+        if replacement is not None:
+            source += indent + indent.join(replacement.splitlines(True))
+            source += f"{indent}#<</>>\n"
+        elif self.inlined is not None:
+            source += self.inlined
+            source += f"{indent}#<</>>\n"
+
+        return source
 
 grammar = Grammar(
     r"""
@@ -73,7 +102,16 @@ class SnippetOpen:
     indent: str
     guidance: str
 
+def find_line_number(text: str, pos: int):
+    #<<find the line number of the given char position>>
+    return text.count('\n', 0, pos) + 1
+    #<</>>
+
 class RawSourceVisitor(NodeVisitor):
+    def __init__(self, raw_source: str, block_at_line: Optional[int] = None):
+        self._raw_source = raw_source
+        self._block_at_line = block_at_line
+
     def generic_visit(self, node: Node, visited_children: List[Node]):
         return visited_children or node
 
@@ -95,6 +133,13 @@ class RawSourceVisitor(NodeVisitor):
     def visit_snippet(self, node: Node, visited_children: list):
         (snippet_open, quantified_source) = visited_children
 
+        if self._block_at_line is None:
+            enabled = True
+        else:
+            start_line = find_line_number(self._raw_source, node.start)
+            end_line = find_line_number(self._raw_source, node.end)
+            enabled = start_line <= self._block_at_line <= end_line
+
         if isinstance(quantified_source, list):
             ((source, _),) = quantified_source
         else:
@@ -106,6 +151,7 @@ class RawSourceVisitor(NodeVisitor):
             end=node.end,
             indent=snippet_open.indent,
             guidance=snippet_open.guidance,
+            enabled=enabled,
             inlined=source,
         )
         #<</>>
@@ -159,9 +205,9 @@ class RawSourceVisitor(NodeVisitor):
     def visit_ai_source(self, node: Node, visited_children: list):
         return node.text
 
-def raw_source_to_pieces(input: str) -> List[Piece]:
+def raw_source_to_pieces(input: str, block_at_line: Optional[int] = None) -> List[Piece]:
     tree = grammar.parse(input)
-    visitor = RawSourceVisitor()
+    visitor = RawSourceVisitor(input, block_at_line)
     pieces = visitor.visit(tree)
 
     return pieces
@@ -174,8 +220,16 @@ def raw_pieces_to_tagged_input(raw_pieces: List[Piece]) -> str:
         if isinstance(piece, PresentPiece):
             tag_source += piece.text
         elif isinstance(piece, MissingPiece):
-            tag_source += f'# <write_this id="{id}">\n{piece.indent}# {piece.guidance}\n{piece.indent}# </>'
-            id += 1
+            if piece.enabled:
+                tag_source += f'# <write_this id="{id}">\n{piece.indent}# {piece.guidance}\n{piece.indent}# </>'
+                id += 1
+            else:
+                tag_source += f"{piece.indent}# {piece.guidance}\n"
+
+                if piece.inlined is None:
+                    tag_source += f"{piece.indent}# (WIP)"
+                else:
+                    tag_source += f"{piece.inlined}"
         else:
             raise TypeError("unknown piece type", piece)
 
@@ -244,20 +298,11 @@ def pieces_to_final_source(
         if isinstance(raw, PresentPiece):
             final_source += raw.text
         elif isinstance(raw, MissingPiece):
-            (indent, guidance) = raw.indent, raw.guidance
-
-            if "\n" in guidance:
-                guidance_lines = "\n"
-                guidance_lines += "\n".join(f"{indent}#{line}" for line in guidance.splitlines())
-                guidance_lines += f"\n{indent}#"
+            if raw.enabled:
+                final_source += raw.complete(completed_pieces[id])
+                id += 1
             else:
-                guidance_lines = guidance
-
-            final_source += f"{indent}#<<{guidance_lines}>>\n"
-            completed = completed_pieces[id]
-            final_source += indent + indent.join(completed.splitlines(True))
-            final_source += f"{indent}#<</>>\n"
-            id += 1
+                final_source += raw.complete(None)
         else:
             raise TypeError("unknown piece type", raw)
 
@@ -268,8 +313,9 @@ def pieces_to_final_source(
 def preprocess_maccarone(
         raw_source: str,
         chat_api: ChatAPI,
+        block_at_line: Optional[int] = None,
     ) -> str:
-    raw_pieces = raw_source_to_pieces(raw_source)
+    raw_pieces = raw_source_to_pieces(raw_source, block_at_line)
     tagged_input = raw_pieces_to_tagged_input(raw_pieces)
     tagged_output = tagged_input_to_tagged_output(tagged_input, chat_api)
     completed_pieces = tagged_output_to_completed_pieces(tagged_output)
