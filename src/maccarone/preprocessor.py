@@ -73,6 +73,11 @@ class SnippetOpen:
     indent: str
     guidance: str
 
+def find_line_number(text: str, pos: int):
+    #<<find the line number of the given char position>>
+    return text.count('\n', 0, pos) + 1
+    #<</>>
+
 class RawSourceVisitor(NodeVisitor):
     def generic_visit(self, node: Node, visited_children: List[Node]):
         return visited_children or node

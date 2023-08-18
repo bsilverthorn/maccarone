@@ -5,6 +5,7 @@ from textwrap import dedent
 from maccarone.preprocessor import (
     PresentPiece,
     MissingPiece,
+    find_line_number,
     raw_source_to_pieces,
     raw_pieces_to_tagged_input,
     tagged_output_to_completed_pieces,
@@ -128,3 +129,19 @@ def test_raw_source_to_tagged_input(raw_pieces, expected):
 ])
 def test_tagged_output_to_completed_pieces(tagged, expected):
     assert tagged_output_to_completed_pieces(tagged) == expected
+
+#<<test find_line_number(text, pos); pos is 0-indexed>>
+@pytest.mark.parametrize("text, pos, expected", [
+    ("hello\nworld", 0, 1),
+    ("hello\nworld", 5, 1),
+    ("hello\nworld", 6, 2),
+    ("hello\nworld", 11, 2),
+    ("\nhello\nworld", 0, 1),
+    ("\nhello\nworld", 1, 2),
+    ("\nhello\nworld", 6, 2),
+    ("\nhello\nworld", 7, 3),
+    ("\nhello\nworld", 12, 3),
+])
+def test_find_line_number(text, pos, expected):
+    assert find_line_number(text, pos) == expected
+#<</>>
