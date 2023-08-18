@@ -4,6 +4,7 @@ import glob
 import logging
 
 from argparse import Namespace
+from typing import Optional
 
 from maccarone.openai import ChatAPI
 from maccarone.preprocessor import preprocess_maccarone
@@ -14,6 +15,7 @@ def preprocess(
         mn_path: str,
         print_: bool,
         rewrite: bool,
+        block_at_line: Optional[int],
     ) -> None:
     # produce Python source
     logger.info("preprocessing %s", mn_path)
@@ -25,7 +27,7 @@ def preprocess(
         mn_source = file.read()
     #<</>>
 
-    py_source = preprocess_maccarone(mn_source, chat_api)
+    py_source = preprocess_maccarone(mn_source, chat_api, block_at_line=block_at_line)
 
     if rewrite:
         #<<write py_source to py_path>>
@@ -37,7 +39,7 @@ def preprocess(
     if print_:
         print(py_source, end="")
 
-def main(path: str, print_: bool, rewrite: bool, suffix: str) -> None:
+def main(path: str, print_: bool, rewrite: bool, suffix: str, block_at_line: Optional[int] = None) -> None:
     """Preprocess files with Maccarone snippets."""
 
     if os.path.isdir(path):
@@ -50,7 +52,7 @@ def main(path: str, print_: bool, rewrite: bool, suffix: str) -> None:
 
     #<<preprocess mn_files>>
     for mn_file in mn_files:
-        preprocess(mn_file, print_, rewrite)
+        preprocess(mn_file, print_, rewrite, block_at_line)
     #<</>>
 
 def parse_args() -> Namespace:
@@ -65,6 +67,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--print", dest="print_", action="store_true", help="Print the preprocessed source code")
     parser.add_argument("--rewrite", action="store_true", help="Rewrite the source file with the preprocessed code")
     parser.add_argument("--suffix", default=".py", help="Suffix for the preprocessed files")
+    parser.add_argument("--block-at-line", type=int, help="Preprocess only the block at given line")
     args = parser.parse_args()
     return args
     #<</>>
