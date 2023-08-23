@@ -9,8 +9,8 @@ Here's what it looks like in [the VS Code extension](https://marketplace.visuals
 
 ![screencap-20230629](https://github.com/bsilverthorn/maccarone/assets/92956/c1549168-28ad-49ef-bcff-dd232838220c)
 
-Detailed example
-----------------
+Example
+-------
 
 You might write some code like this:
 
