@@ -3,7 +3,7 @@ Maccarone: AI-managed code blocks in Python ⏪⏩
 
 [![PyPI version](https://badge.fury.io/py/maccarone.svg)](https://badge.fury.io/py/maccarone)
 
-Maccarone lets you _delegate_ sections of your Python program to AI ownership.
+Maccarone lets you [_delegate_](https://silverthorn.blog/posts/2023-08-llm-assisted-programming-maccarone/) sections of your Python program to AI ownership.
 
 Here's what it looks like in [the VS Code extension](https://marketplace.visualstudio.com/items?itemName=maccarone.maccarone):
 
