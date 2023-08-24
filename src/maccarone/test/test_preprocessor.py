@@ -1,15 +1,12 @@
-import pytest
-
 from textwrap import dedent
 
-from maccarone.preprocessor import (
-    PresentPiece,
-    MissingPiece,
-    find_line_number,
-    raw_source_to_pieces,
-    raw_pieces_to_tagged_input,
-    tagged_output_to_completed_pieces,
-)
+import pytest
+
+from maccarone.preprocessor import (MissingPiece, PresentPiece,
+                                    find_line_number,
+                                    raw_pieces_to_tagged_input,
+                                    raw_source_to_pieces,
+                                    tagged_output_to_completed_pieces)
 
 LB = "<"
 RB = ">"

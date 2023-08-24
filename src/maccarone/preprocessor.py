@@ -1,20 +1,11 @@
-import re
 import logging
-
+import re
 from dataclasses import dataclass
 from itertools import chain
-from typing import (
-    Dict,
-    List,
-    Optional,
-    Tuple,
-)
+from typing import Dict, List, Optional, Tuple
 
-from parsimonious.nodes import (
-    Node,
-    NodeVisitor,
-)
 from parsimonious.grammar import Grammar
+from parsimonious.nodes import Node, NodeVisitor
 
 from maccarone.openai import ChatAPI
 

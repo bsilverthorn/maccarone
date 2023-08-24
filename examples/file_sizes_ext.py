@@ -1,8 +1,10 @@
 #<<imports>>
-import os
 import argparse
+import os
 from typing import Optional
+
 from termcolor import colored
+
 #<</>>
 
 def main(path: str, extension: str | None):

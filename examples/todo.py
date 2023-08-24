@@ -52,6 +52,8 @@ def print_todos():
 
 #<<command line interface using argparse>>
 import argparse
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--add', help='Add a new todo')

@@ -1,8 +1,7 @@
-import os
-import os.path
 import glob
 import logging
-
+import os
+import os.path
 from argparse import Namespace
 from typing import Optional
 
