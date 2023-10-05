@@ -135,3 +135,9 @@ They are likely to work, but less likely than English.
 ### What does "maccarone" mean?
 
 https://en.wikipedia.org/wiki/Macaronic_language
+
+### Is this project active?
+
+Yes and no. It was created to evaluate a specific flavor of LLM-assisted programming. It feels feature-complete for that purpose.
+
+PRs and bug reports are welcome, however, and there may be future maintenance releases.
