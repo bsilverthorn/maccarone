@@ -1,16 +1,8 @@
-import os
 import logging
-
-from typing import (
-    List,
-    Dict,
-    Callable,
-    Iterable,
-    cast,
-)
+import os
+from typing import Callable, Dict, Iterable, List, cast
 
 import openai
-
 from openai import ChatCompletion
 
 logger = logging.getLogger(__name__)

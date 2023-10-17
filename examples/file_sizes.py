@@ -12,6 +12,7 @@ def main(path: str):
 
 #<<use argparse and call main once>>
 import argparse
+
 parser = argparse.ArgumentParser()
 parser.add_argument("path", type=str)
 args = parser.parse_args()

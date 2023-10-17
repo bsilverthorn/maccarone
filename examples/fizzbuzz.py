@@ -16,6 +16,7 @@ def main(n: int):
 # call main with those args
 #>>
 import argparse
+
 parser = argparse.ArgumentParser()
 parser.add_argument("n", type=int)
 args = parser.parse_args()
